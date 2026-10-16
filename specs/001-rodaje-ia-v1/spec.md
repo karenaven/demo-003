@@ -13,6 +13,22 @@ PRD se conservan entre paréntesis para mantener la trazabilidad. Los anexos del
 convención del guion, B: modelo de datos, C: reglas de negocio, D: estructura del prompt,
 E: vocabulario) son parte normativa de esta spec y no se duplican aquí.
 
+## Clarifications
+
+### Session 2026-10-16
+
+- Q: ¿Los nombres de las hojas de personaje deben ser únicos dentro de una serie? → A: Sí,
+  únicos en la serie sin distinguir mayúsculas; no se puede crear ni renombrar una hoja con un
+  nombre ya existente en la serie, y se indica el motivo.
+- Q: Si existen las hojas "José" y "José Daniel" y la acción dice "José Daniel", ¿se detecta
+  solo a José Daniel o a ambos? → A: Gana el nombre más largo; ese tramo cuenta solo para José
+  Daniel y "José" se detecta solo si aparece en otro lugar por sí mismo.
+- Q: Al pulsar "Generar" en un episodio con varias escenas pendientes, ¿se generan de a una o
+  varias a la vez? → A: De a una, en orden de número de escena; la siguiente empieza cuando la
+  anterior queda "generada" o "error".
+- Q: Cuando una escena queda en "error", ¿se muestra el motivo de la falla? → A: Sí, un motivo
+  corto en lenguaje simple, solo del último intento fallido.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Cargar y validar el guion de un episodio (Priority: P1)
@@ -221,11 +237,18 @@ Cubre además AC-09b–AC-09d, AC-09f, AC-09g, AC-09l y AC-09m.
   (AC-05g).
 - Nombre sin tilde ("Jose Daniel") o como prefijo de otra palabra ("Anabel"): no se detecta
   (AC-05e, AC-05f).
+- Hojas "José" y "José Daniel" con una acción que dice solo "José Daniel": se detecta José
+  Daniel y no José; si la acción dice además "José" por separado, se detectan los dos (FR-011a).
+- Hoja con un nombre ya usado en la serie, aunque cambien mayúsculas ("ana" frente a "Ana"): no
+  se guarda y se indica que el nombre ya existe (FR-002a).
 - Hoja sin heridas/marcas: el prompt no muestra la etiqueta "Heridas/marcas" (AC-08c).
 - Clip con texto en pantalla: el bloque lo incluye literal y no agrega "Sin subtítulos ni texto
   en pantalla." (AC-08g).
 - La IA no responde a tiempo, devuelve error o devuelve una respuesta inválida: se reintenta
-  según RNF-07 y, agotados los intentos, la escena queda en "error" (AC-10a, AC-10c).
+  según RNF-07 y, agotados los intentos, la escena queda en "error" con el motivo del último
+  intento (AC-10a, AC-10c, FR-019a).
+- Se pulsa "Generar" o "Reintentar" mientras el episodio ya está generando: no se inicia una
+  segunda generación en paralelo (FR-014a).
 - La aplicación se cierra en medio de una generación: al reiniciar, las escenas en "generando"
   pasan a "error" (AC-10f).
 - Recarga de guion sobre un episodio ya generado: reemplaza todo el guion anterior (AC-02c).
@@ -246,6 +269,10 @@ Cubre además AC-09b–AC-09d, AC-09f, AC-09g, AC-09l y AC-09m.
 - **FR-002**: El sistema MUST permitir crear, listar, editar y eliminar hojas de personaje dentro
   de una serie, con los campos del Anexo B; todos son obligatorios salvo heridas/marcas, y una
   edición no puede dejar vacío un campo obligatorio (RF-01e–g).
+- **FR-002a**: El nombre de una hoja de personaje MUST ser único dentro de su serie, comparado
+  sin distinguir mayúsculas de minúsculas ("Ana" y "ANA" son el mismo nombre). Crear o renombrar
+  una hoja con un nombre ya existente en la serie MUST rechazarse indicando que el nombre ya
+  existe. Series distintas pueden tener hojas con el mismo nombre.
 - **FR-003**: Eliminar una hoja de personaje MUST eliminar también sus variantes, incluidas las
   de escenas en "generando" o "generada" (RF-01h).
 - **FR-004**: El sistema MUST permitir crear episodios con número y título, con número único
@@ -272,6 +299,12 @@ Cubre además AC-09b–AC-09d, AC-09f, AC-09g, AC-09l y AC-09m.
   (nombre exacto como palabra completa en la acción, con mayúscula inicial y tildes, o marcador
   de diálogo en mayúsculas) y en cada escena (presentes en algún clip o mencionados en
   `PUESTA EN ESCENA:`) (RF-05a, RF-05b).
+- **FR-011a**: Cuando el nombre de una hoja está contenido en el nombre de otra de la misma
+  serie (por ejemplo "José" y "José Daniel"), un mismo tramo de texto MUST contar solo para el
+  nombre más largo que coincide en esa posición. El nombre más corto se detecta solo si aparece
+  como palabra completa en otro tramo que no forma parte de una coincidencia más larga. Los
+  marcadores de diálogo se comparan con el nombre completo antes de los dos puntos, por lo que
+  `JOSÉ DANIEL:` cuenta solo para José Daniel.
 - **FR-012**: Los personajes sin hoja MUST poder tener diálogo, que se acepta y se inserta
   literal, pero no se detectan como personajes (RN-07).
 
@@ -281,6 +314,11 @@ Cubre además AC-09b–AC-09d, AC-09f, AC-09g, AC-09l y AC-09m.
   generación (RF-06d).
 - **FR-014**: El sistema MUST ofrecer un botón "Generar" que genera todas las escenas en
   "pendiente" de un episodio, y solo esas (RF-06c).
+- **FR-014a**: Las escenas MUST generarse de a una, en orden ascendente de número de escena: la
+  siguiente escena empieza solo cuando la anterior quedó en "generada" o "error". Las escenas
+  que esperan su turno siguen en "pendiente". Mientras el episodio tiene una generación en
+  curso, pulsar "Generar" o reintentar una escena de ese episodio MUST NOT iniciar otra
+  generación en paralelo.
 - **FR-015**: Para cada escena, el sistema MUST pedir a la IA un bloque por clip, cada uno con
   una o más tomas, cuyos campos técnicos solo pueden tomar valores del vocabulario cerrado del
   Anexo E (RF-06a, RN-02). El único texto libre de la IA es la acción de cada toma.
@@ -298,6 +336,13 @@ Cubre además AC-09b–AC-09d, AC-09f, AC-09g, AC-09l y AC-09m.
   "generada" o "error"; MUST guardar los bloques de una escena en cuanto se generan, de forma
   que el fallo de otra escena no los borre; y MUST marcar "error" cuando se agotan los intentos
   (RF-10a, RF-10b, RF-10d).
+- **FR-019a**: Cuando una escena queda en "error", el sistema MUST guardar y mostrar junto a su
+  estado un motivo corto, en lenguaje simple, del último intento fallido, que distinga al menos:
+  la IA no respondió a tiempo, la IA devolvió un error o no está disponible, la respuesta no
+  cumplió las reglas (indicando cuál, por ejemplo "falta el bloque del clip 3"), error de
+  configuración de la IA, y generación interrumpida por un cierre de la aplicación (FR-021). El
+  motivo MUST NOT incluir datos sensibles como la clave de la IA, y se borra cuando la escena
+  sale de "error".
 - **FR-020**: El sistema MUST permitir reintentar la generación de una escena en "error"
   (RF-10c).
 - **FR-021**: Al iniciar la aplicación, toda escena en "generando" MUST pasar a "error" (RF-10e).
@@ -344,7 +389,8 @@ Cubre además AC-09b–AC-09d, AC-09f, AC-09g, AC-09l y AC-09m.
   descripción física con voz, peinado, vestuario, heridas/marcas opcionales, personalidad, rol).
 - **Episodio**: pertenece a una serie; número único en la serie, título y guion en texto plano.
 - **Escena**: pertenece a un episodio; número, INT/EXT, lugar, momento del día, locación,
-  iluminación base, puesta en escena, audio, personajes detectados y estado de generación.
+  iluminación base, puesta en escena, audio, personajes detectados, estado de generación y,
+  si está en "error", el motivo del último intento fallido.
 - **Variante de personaje**: reemplazo de edad, peinado, vestuario o heridas/marcas de una hoja
   para una escena concreta; como máximo una por personaje y escena.
 - **Clip**: pertenece a una escena; número, acción, líneas de diálogo (personaje, acotación
