@@ -11,7 +11,8 @@
 Esta spec cubre la v1 completa descrita en `PRD.md`. Los identificadores RF, RN, RNF y AC del
 PRD se conservan entre paréntesis para mantener la trazabilidad. Los anexos del PRD (A:
 convención del guion, B: modelo de datos, C: reglas de negocio, D: estructura del prompt,
-E: vocabulario) son parte normativa de esta spec y no se duplican aquí.
+E: vocabulario) son parte normativa de esta spec y no se duplican aquí. Donde esta spec detalla
+o restringe al PRD (sesiones de aclaración), prevalece esta spec.
 
 ## Clarifications
 
