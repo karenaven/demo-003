@@ -5,6 +5,7 @@
 @inject RodajeIA.Web.Prompt.CopiaPrompt Copia
 @inject RodajeIA.Web.Generacion.NotificadorGeneracion Notificador
 @inject TomasService Tomas
+@inject VariantesService Variantes
 
 <PageTitle>@(_escena is null ? "Escena" : $"Escena {_escena.Numero}")</PageTitle>
 
@@ -23,6 +24,74 @@
         <span class="motivo">@_escena.MotivoError</span>
     }
 </p>
+
+<section>
+    <h2>Personajes y variantes</h2>
+    @if (_personajes.Count == 0)
+    {
+        <p>No se detectaron personajes con hoja en esta escena.</p>
+    }
+    else
+    {
+        @if (VariantesBloqueadas)
+        {
+            <p class="aviso">@VariantesService.EscenaBloqueada</p>
+        }
+
+        <table class="tabla">
+            <tbody>
+                @foreach (var hoja in _personajes)
+                {
+                    var variante = _variantes.SingleOrDefault(v => v.HojaId == hoja.Id);
+                    <tr>
+                        <td><strong>@hoja.Nombre</strong></td>
+                        <td>
+                            @if (variante is null)
+                            {
+                                <span>Hoja base</span>
+                            }
+                            else
+                            {
+                                <span>Variante: @DescribirVariante(variante)</span>
+                            }
+                        </td>
+                        <td>
+                            <button disabled="@VariantesBloqueadas" @onclick="() => AbrirVariante(hoja, variante)">@(variante is null ? "Crear variante" : "Editar variante")</button>
+                            @if (variante is not null)
+                            {
+                                <button disabled="@VariantesBloqueadas" @onclick="() => EliminarVarianteAsync(variante.Id)">Eliminar variante</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (_hojaVariante is not null)
+        {
+            <form class="formulario" @onsubmit="GuardarVarianteAsync">
+                <h3>Variante de @_hojaVariante.Nombre (vacío = usa la hoja base)</h3>
+                <label>Edad <input @bind="_formVariante.Edad" placeholder="@_hojaVariante.Edad" /></label>
+                <label>Peinado <input @bind="_formVariante.Peinado" placeholder="@_hojaVariante.Peinado" /></label>
+                <label>Vestuario <input @bind="_formVariante.Vestuario" placeholder="@_hojaVariante.Vestuario" /></label>
+                <label><input type="checkbox" @bind="_formVariante.ReemplazaHeridas" /> Reemplazar heridas/marcas</label>
+                @if (_formVariante.ReemplazaHeridas)
+                {
+                    <label>Heridas/marcas (vacío = sin heridas) <input @bind="_formVariante.HeridasMarcas" /></label>
+                }
+                <div>
+                    <button type="submit">Guardar variante</button>
+                    <button type="button" @onclick="() => _hojaVariante = null">Cancelar</button>
+                </div>
+            </form>
+        }
+
+        @if (_motivoVariante is not null)
+        {
+            <p class="motivo">@_motivoVariante</p>
+        }
+    }
+</section>
 
 @if (_escena.Estado == EstadoEscena.Generada)
 {
@@ -103,6 +172,23 @@
     private RodajeIA.Web.Prompt.ResultadoCopia? _resultadoCopia;
     private IReadOnlyList<BloqueRevision> _bloques = [];
     private readonly Dictionary<int, string> _motivos = [];
+    private IReadOnlyList<HojaPersonaje> _personajes = [];
+    private IReadOnlyList<VarianteEscena> _variantes = [];
+    private HojaPersonaje? _hojaVariante;
+    private int? _varianteEditada;
+    private FormularioVariante _formVariante = new();
+    private string? _motivoVariante;
+
+    private sealed class FormularioVariante
+    {
+        public string? Edad { get; set; }
+        public string? Peinado { get; set; }
+        public string? Vestuario { get; set; }
+        public bool ReemplazaHeridas { get; set; }
+        public string? HeridasMarcas { get; set; }
+    }
+
+    private bool VariantesBloqueadas => _escena?.Estado is EstadoEscena.Generando or EstadoEscena.Generada;
 
     protected override void OnInitialized() => Notificador.EstadoEscenaCambiado += AlCambiarEscena;
 
@@ -126,8 +212,58 @@
     {
         await using var db = await Fabrica.CreateDbContextAsync();
         _escena = await db.Escenas.Include(e => e.Episodio).AsNoTracking().SingleOrDefaultAsync(e => e.Id == EscenaId);
+        _personajes = await db.PersonajesEnEscena.Where(p => p.EscenaId == EscenaId).OrderBy(p => p.Orden).Select(p => p.Hoja!).AsNoTracking().ToListAsync();
+        _variantes = await Variantes.ListarAsync(EscenaId);
         _prompt = _escena is null ? null : await Armador.ArmarAsync(EscenaId);
         _bloques = _escena is { Estado: EstadoEscena.Generada } ? await Tomas.ObtenerBloquesAsync(EscenaId) : [];
+    }
+
+    private static string DescribirVariante(VarianteEscena v) => string.Join("; ", new[]
+    {
+        v.Edad is null ? null : $"edad {v.Edad}",
+        v.Peinado is null ? null : $"peinado {v.Peinado}",
+        v.Vestuario is null ? null : $"vestuario {v.Vestuario}",
+        v.ReemplazaHeridas ? (v.HeridasMarcas is null ? "sin heridas" : $"heridas/marcas {v.HeridasMarcas}") : null,
+    }.Where(t => t is not null));
+
+    private void AbrirVariante(HojaPersonaje hoja, VarianteEscena? variante)
+    {
+        _hojaVariante = hoja;
+        _varianteEditada = variante?.Id;
+        _motivoVariante = null;
+        _formVariante = new FormularioVariante
+        {
+            Edad = variante?.Edad,
+            Peinado = variante?.Peinado,
+            Vestuario = variante?.Vestuario,
+            ReemplazaHeridas = variante?.ReemplazaHeridas ?? false,
+            HeridasMarcas = variante?.HeridasMarcas,
+        };
+    }
+
+    private async Task GuardarVarianteAsync()
+    {
+        if (_hojaVariante is null)
+        {
+            return;
+        }
+
+        var datos = new DatosVariante(_formVariante.Edad, _formVariante.Peinado, _formVariante.Vestuario, _formVariante.ReemplazaHeridas, _formVariante.HeridasMarcas);
+        var resultado = _varianteEditada is { } id
+            ? await Variantes.EditarAsync(id, datos)
+            : await Variantes.CrearAsync(EscenaId, _hojaVariante.Id, datos);
+        _motivoVariante = resultado.Motivo;
+        if (resultado.Ok)
+        {
+            _hojaVariante = null;
+            await CargarAsync();
+        }
+    }
+
+    private async Task EliminarVarianteAsync(int varianteId)
+    {
+        _motivoVariante = (await Variantes.EliminarAsync(varianteId)).Motivo;
+        await CargarAsync();
     }
 
     private static string? Valor(TomaRevision toma, string categoria) => categoria switch

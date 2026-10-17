@@ -54,6 +54,7 @@ builder.Services.AddSingleton<HojasService>();
 builder.Services.AddSingleton<EpisodiosService>();
 builder.Services.AddSingleton<CargaGuionService>();
 builder.Services.AddSingleton<TomasService>();
+builder.Services.AddSingleton<VariantesService>();
 
 // Prompt final (contracts/prompt.md).
 builder.Services.AddSingleton<ArmadorPrompt>();

@@ -505,7 +505,7 @@ comprobar la instrucción y los prompts, y las restricciones según el estado.
 
 ### Tests for User Story 6 ⚠️
 
-- [ ] T081 [P] [US6] Escribir `tests/RodajeIA.Tests/Servicios/VariantesServiceTests.cs`:
+- [X] T081 [P] [US6] Escribir `tests/RodajeIA.Tests/Servicios/VariantesServiceTests.cs`:
   - la escena 2 muestra la variante y la escena 1, la hoja base (`AC-09a`, a través de `ArmadorPrompt`);
   - listar (`AC-09b`) y editar (`AC-09c`);
   - eliminar deja intacta la hoja base (`AC-09d`, `AC-09m`);
@@ -518,18 +518,18 @@ comprobar la instrucción y los prompts, y las restricciones según el estado.
 
 ### Implementation for User Story 6
 
-- [ ] T082 [US6] Implementar `src/RodajeIA.Web/Servicios/VariantesService.cs` (FR-029 a FR-031, FR-029a):
+- [X] T082 [US6] Implementar `src/RodajeIA.Web/Servicios/VariantesService.cs` (FR-029 a FR-031, FR-029a):
   - listar, crear, editar y eliminar;
   - solo personajes en `PersonajeEnEscena`;
   - al menos un campo distinto de la base, comparado sin espacios al inicio ni al final;
   - edad, peinado y vestuario no pueden quedar vacíos si se reemplazan;
   - `ReemplazaHeridas` con un valor vacío significa "sin heridas";
   - solo en `Pendiente` o `Error`, con los motivos de rechazo de cada regla.
-- [ ] T083 [US6] Agregar a `src/RodajeIA.Web/Components/Pages/EscenaPagina.razor` la sección "Personajes y variantes":
+- [X] T083 [US6] Agregar a `src/RodajeIA.Web/Components/Pages/EscenaPagina.razor` la sección "Personajes y variantes":
   - personajes detectados con su variante;
   - formulario de edad, peinado, vestuario y heridas/marcas, con la opción "Sin heridas";
   - controles deshabilitados, con el motivo, en `Generando` y `Generada`.
-- [ ] T084 [US6] Registrar `VariantesService` en `src/RodajeIA.Web/Program.cs`.
+- [X] T084 [US6] Registrar `VariantesService` en `src/RodajeIA.Web/Program.cs`.
 
 **Checkpoint**: las seis historias están completas.
 
