@@ -5,14 +5,33 @@
 }
 
 .barra {
-    background: #1f2933;
-    padding: 0.75rem 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--barra);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.barra-interior {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0.8rem 1.5rem;
 }
 
 .contenido {
     flex: 1;
-    padding: 1.5rem;
+    padding: 2rem 1.5rem 3rem;
     max-width: 72rem;
     width: 100%;
     margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+    .barra-interior {
+        padding: 0.7rem 1rem;
+    }
+
+    .contenido {
+        padding: 1.25rem 1rem 2rem;
+    }
 }

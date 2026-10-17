@@ -15,21 +15,34 @@
     return;
 }
 
-<p><a href="episodios/@_escena.EpisodioId">← Episodio @_escena.Episodio?.Numero: @_escena.Episodio?.Titulo</a></p>
-<h1>Escena @_escena.Numero — @(_escena.IntExt == IntExt.Int ? "INT." : "EXT.") @_escena.Lugar — @_escena.MomentoDia</h1>
-<p>
-    Estado: <strong>@_escena.Estado</strong>
-    @if (_escena.Estado == EstadoEscena.Error)
-    {
-        <span class="motivo">@_escena.MotivoError</span>
-    }
-</p>
+<nav class="migas" aria-label="Ruta">
+    <a href="">Series</a>
+    <span class="sep">/</span>
+    <a href="episodios/@_escena.EpisodioId">Episodio @_escena.Episodio?.Numero: @_escena.Episodio?.Titulo</a>
+</nav>
+<header class="encabezado">
+    <div>
+        <span class="etiqueta-previa">Escena @_escena.Numero · @(_escena.IntExt == IntExt.Int ? "INT." : "EXT.") · @_escena.MomentoDia</span>
+        <h1>@_escena.Lugar</h1>
+    </div>
+    <span class="estado @ClaseEstado(_escena.Estado)">@NombreEstado(_escena.Estado)</span>
+</header>
 
-<section>
-    <h2>Personajes y variantes</h2>
+@if (_escena.Estado == EstadoEscena.Error)
+{
+    <p class="motivo">@_escena.MotivoError</p>
+}
+
+<section class="tarjeta">
+    <div class="tarjeta-cabecera">
+        <div>
+            <h2>Personajes y variantes</h2>
+            <p class="ayuda">Una variante cambia el aspecto de un personaje solo en esta escena.</p>
+        </div>
+    </div>
     @if (_personajes.Count == 0)
     {
-        <p>No se detectaron personajes con hoja en esta escena.</p>
+        <div class="vacio">No se detectaron personajes con hoja en esta escena.</div>
     }
     else
     {
@@ -38,50 +51,49 @@
             <p class="aviso">@VariantesService.EscenaBloqueada</p>
         }
 
-        <table class="tabla">
-            <tbody>
-                @foreach (var hoja in _personajes)
-                {
-                    var variante = _variantes.SingleOrDefault(v => v.HojaId == hoja.Id);
-                    <tr>
-                        <td><strong>@hoja.Nombre</strong></td>
-                        <td>
-                            @if (variante is null)
-                            {
-                                <span>Hoja base</span>
-                            }
-                            else
-                            {
-                                <span>Variante: @DescribirVariante(variante)</span>
-                            }
-                        </td>
-                        <td>
-                            <button disabled="@VariantesBloqueadas" @onclick="() => AbrirVariante(hoja, variante)">@(variante is null ? "Crear variante" : "Editar variante")</button>
-                            @if (variante is not null)
-                            {
-                                <button disabled="@VariantesBloqueadas" @onclick="() => EliminarVarianteAsync(variante.Id)">Eliminar variante</button>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        <ul class="lista">
+            @foreach (var hoja in _personajes)
+            {
+                var variante = _variantes.SingleOrDefault(v => v.HojaId == hoja.Id);
+                <li>
+                    <div class="principal">
+                        <span class="avatar" aria-hidden="true">@(hoja.Nombre.Length > 0 ? char.ToUpperInvariant(hoja.Nombre[0]) : '?')</span>
+                        <div>
+                            <strong>@hoja.Nombre</strong>
+                            <div class="detalle">@(variante is null ? "Hoja base" : $"Variante: {DescribirVariante(variante)}")</div>
+                        </div>
+                    </div>
+                    <div class="acciones">
+                        <button class="fantasma" disabled="@VariantesBloqueadas" @onclick="() => AbrirVariante(hoja, variante)">@(variante is null ? "Crear variante" : "Editar variante")</button>
+                        @if (variante is not null)
+                        {
+                            <button class="peligro fantasma" disabled="@VariantesBloqueadas" @onclick="() => EliminarVarianteAsync(variante.Id)">Eliminar variante</button>
+                        }
+                    </div>
+                </li>
+            }
+        </ul>
 
         @if (_hojaVariante is not null)
         {
-            <form class="formulario" @onsubmit="GuardarVarianteAsync">
-                <h3>Variante de @_hojaVariante.Nombre (vacío = usa la hoja base)</h3>
-                <label>Edad <input @bind="_formVariante.Edad" placeholder="@_hojaVariante.Edad" /></label>
-                <label>Peinado <input @bind="_formVariante.Peinado" placeholder="@_hojaVariante.Peinado" /></label>
+            <form class="formulario subformulario" @onsubmit="GuardarVarianteAsync">
+                <div>
+                    <h3>Variante de @_hojaVariante.Nombre</h3>
+                    <p class="ayuda">Un campo vacío usa el valor de la hoja base.</p>
+                </div>
+                <div class="fila">
+                    <label>Edad <input @bind="_formVariante.Edad" placeholder="@_hojaVariante.Edad" /></label>
+                    <label>Peinado <input @bind="_formVariante.Peinado" placeholder="@_hojaVariante.Peinado" /></label>
+                </div>
                 <label>Vestuario <input @bind="_formVariante.Vestuario" placeholder="@_hojaVariante.Vestuario" /></label>
-                <label><input type="checkbox" @bind="_formVariante.ReemplazaHeridas" /> Reemplazar heridas/marcas</label>
+                <label class="casilla"><input type="checkbox" @bind="_formVariante.ReemplazaHeridas" /> Reemplazar heridas/marcas</label>
                 @if (_formVariante.ReemplazaHeridas)
                 {
-                    <label>Heridas/marcas (vacío = sin heridas) <input @bind="_formVariante.HeridasMarcas" /></label>
+                    <label>Heridas/marcas <span class="opcional">(vacío = sin heridas)</span> <input @bind="_formVariante.HeridasMarcas" /></label>
                 }
-                <div>
-                    <button type="submit">Guardar variante</button>
-                    <button type="button" @onclick="() => _hojaVariante = null">Cancelar</button>
+                <div class="acciones">
+                    <button type="submit" class="primario">Guardar variante</button>
+                    <button type="button" class="fantasma" @onclick="() => _hojaVariante = null">Cancelar</button>
                 </div>
             </form>
         }
@@ -95,71 +107,91 @@
 
 @if (_escena.Estado == EstadoEscena.Generada)
 {
-    <section>
-        <h2>Bloques</h2>
+    <section class="tarjeta">
+        <div class="tarjeta-cabecera">
+            <div>
+                <h2>Bloques de tomas</h2>
+                <p class="ayuda">Los cambios se guardan al salir de cada campo y actualizan el prompt.</p>
+            </div>
+        </div>
         @foreach (var bloque in _bloques)
         {
-            <h3>Bloque @bloque.Clip</h3>
-            @foreach (var toma in bloque.Tomas)
-            {
-                <div class="toma">
-                    <strong>Toma @toma.Orden</strong>
-                    @foreach (var categoria in RodajeIA.Web.Configuracion.Vocabulario.NombresCategorias)
-                    {
-                        var actual = Valor(toma, categoria);
-                        <label>
-                            @Etiqueta(categoria)
-                            <select value="@(actual ?? "")" @onchange="e => EditarCampoAsync(toma.Id, categoria, e.Value?.ToString())">
-                                @if (!Tomas.EsObligatoria(categoria))
-                                {
-                                    <option value="">(sin valor)</option>
-                                }
-                                @if (actual is not null && toma.FueraDeVocabulario.Contains(categoria))
-                                {
-                                    <option value="@actual" disabled>@actual</option>
-                                }
-                                @foreach (var opcion in Tomas.Opciones(categoria))
-                                {
-                                    <option value="@opcion">@opcion</option>
-                                }
-                            </select>
-                            @if (toma.FueraDeVocabulario.Contains(categoria))
+            <div class="bloque">
+                <h3>Bloque @bloque.Clip</h3>
+                @foreach (var toma in bloque.Tomas)
+                {
+                    <div class="toma">
+                        <strong class="toma-titulo">Toma @toma.Orden</strong>
+                        <div class="toma-campos">
+                            @foreach (var categoria in RodajeIA.Web.Configuracion.Vocabulario.NombresCategorias)
                             {
-                                <span class="aviso">valor fuera del vocabulario</span>
+                                var actual = Valor(toma, categoria);
+                                <label>
+                                    @Etiqueta(categoria)
+                                    <select value="@(actual ?? "")" @onchange="e => EditarCampoAsync(toma.Id, categoria, e.Value?.ToString())">
+                                        @if (!Tomas.EsObligatoria(categoria))
+                                        {
+                                            <option value="">(sin valor)</option>
+                                        }
+                                        @if (actual is not null && toma.FueraDeVocabulario.Contains(categoria))
+                                        {
+                                            <option value="@actual" disabled>@actual</option>
+                                        }
+                                        @foreach (var opcion in Tomas.Opciones(categoria))
+                                        {
+                                            <option value="@opcion">@opcion</option>
+                                        }
+                                    </select>
+                                    @if (toma.FueraDeVocabulario.Contains(categoria))
+                                    {
+                                        <span class="aviso">valor fuera del vocabulario</span>
+                                    }
+                                </label>
                             }
+                        </div>
+                        <label>
+                            Acción
+                            <textarea value="@toma.Accion" @onchange="e => EditarAccionAsync(toma.Id, e.Value?.ToString() ?? string.Empty)"></textarea>
                         </label>
-                    }
-                    <label>
-                        Acción
-                        <textarea value="@toma.Accion" @onchange="e => EditarAccionAsync(toma.Id, e.Value?.ToString() ?? string.Empty)"></textarea>
-                    </label>
-                    @if (toma.Dialogos.Count > 0)
-                    {
-                        <div>Diálogos: @string.Join(" ", toma.Dialogos)</div>
-                    }
-                    @if (_motivos.TryGetValue(toma.Id, out var motivo))
-                    {
-                        <p class="motivo">@motivo</p>
-                    }
-                </div>
-            }
+                        @if (toma.Dialogos.Count > 0)
+                        {
+                            <div class="dialogos">
+                                <span>Diálogos</span>
+                                @foreach (var dialogo in toma.Dialogos)
+                                {
+                                    <blockquote>@dialogo</blockquote>
+                                }
+                            </div>
+                        }
+                        @if (_motivos.TryGetValue(toma.Id, out var motivo))
+                        {
+                            <p class="motivo">@motivo</p>
+                        }
+                    </div>
+                }
+            </div>
         }
     </section>
 }
 
 @if (_prompt is not null)
 {
-    <section>
-        <h2>Prompt final</h2>
+    <section class="tarjeta">
+        <div class="tarjeta-cabecera">
+            <div>
+                <h2>Prompt final</h2>
+                <p class="ayuda">Listo para pegar en la IA de video.</p>
+            </div>
+            <button class="primario" @onclick="CopiarAsync">Copiar prompt</button>
+        </div>
         <textarea class="prompt" readonly value="@_prompt" aria-label="Prompt final"></textarea>
-        <p>
-            <button @onclick="CopiarAsync">Copiar</button>
-            <span>@_prompt.Length caracteres</span>
+        <div class="pie-acciones">
+            <span class="meta">@_prompt.Length caracteres</span>
             @if (_resultadoCopia is not null)
             {
-                <span class="@(_resultadoCopia.Copiado ? "" : "aviso")">@_resultadoCopia.Mensaje</span>
+                <span class="@(_resultadoCopia.Copiado ? "exito" : "aviso")">@_resultadoCopia.Mensaje</span>
             }
-        </p>
+        </div>
     </section>
 }
 
@@ -217,6 +249,22 @@
         _prompt = _escena is null ? null : await Armador.ArmarAsync(EscenaId);
         _bloques = _escena is { Estado: EstadoEscena.Generada } ? await Tomas.ObtenerBloquesAsync(EscenaId) : [];
     }
+
+    private static string ClaseEstado(EstadoEscena estado) => estado switch
+    {
+        EstadoEscena.Generando => "estado-generando",
+        EstadoEscena.Generada => "estado-generada",
+        EstadoEscena.Error => "estado-error",
+        _ => "estado-pendiente",
+    };
+
+    private static string NombreEstado(EstadoEscena estado) => estado switch
+    {
+        EstadoEscena.Generando => "Generando",
+        EstadoEscena.Generada => "Generada",
+        EstadoEscena.Error => "Error",
+        _ => "Pendiente",
+    };
 
     private static string DescribirVariante(VarianteEscena v) => string.Join("; ", new[]
     {

@@ -13,11 +13,29 @@
     return;
 }
 
-<p><a href="series/@_episodio.SerieId">← @_episodio.Serie?.Nombre</a></p>
-<h1>Episodio @_episodio.Numero: @_episodio.Titulo</h1>
+<nav class="migas" aria-label="Ruta">
+    <a href="">Series</a>
+    <span class="sep">/</span>
+    <a href="series/@_episodio.SerieId">@_episodio.Serie?.Nombre</a>
+</nav>
+<header class="encabezado">
+    <div>
+        <span class="etiqueta-previa">Episodio @_episodio.Numero</span>
+        <h1>@_episodio.Titulo</h1>
+        @if (_episodio.Escenas.Count > 0)
+        {
+            <p class="subtitulo">@_episodio.Escenas.Count(e => e.Estado == EstadoEscena.Generada) de @_episodio.Escenas.Count escenas generadas</p>
+        }
+    </div>
+</header>
 
-<section>
-    <h2>Guion</h2>
+<section class="tarjeta">
+    <div class="tarjeta-cabecera">
+        <div>
+            <h2>Guion</h2>
+            <p class="ayuda">Se valida completo: si hay un error, no se guarda nada y se indica la línea.</p>
+        </div>
+    </div>
     @if (EsteEpisodioGenerando)
     {
         <p class="aviso">@CargaGuionService.GeneracionEnCurso</p>
@@ -25,16 +43,20 @@
 
     <textarea class="guion" @bind="_texto" disabled="@EsteEpisodioGenerando" placeholder="Pegá el guion en texto plano" aria-label="Guion"></textarea>
 
-    @if (_pidiendoConfirmacion)
-    {
-        <p class="aviso">El episodio ya tiene un guion. Si lo reemplazás, se eliminan sus escenas, clips, bloques y variantes.</p>
-        <button @onclick="() => GuardarAsync(confirmado: true)">Reemplazar guion</button>
-        <button @onclick="() => _pidiendoConfirmacion = false">Cancelar</button>
-    }
-    else
-    {
-        <button @onclick="() => GuardarAsync(confirmado: false)" disabled="@(EsteEpisodioGenerando || string.IsNullOrWhiteSpace(_texto))">Validar y guardar</button>
-    }
+    <div class="pie-acciones">
+        @if (_pidiendoConfirmacion)
+        {
+            <p class="aviso">El episodio ya tiene un guion. Si lo reemplazás, se eliminan sus escenas, clips, bloques y variantes.</p>
+            <div class="acciones">
+                <button class="peligro lleno" @onclick="() => GuardarAsync(confirmado: true)">Reemplazar guion</button>
+                <button class="fantasma" @onclick="() => _pidiendoConfirmacion = false">Cancelar</button>
+            </div>
+        }
+        else
+        {
+            <button class="primario" @onclick="() => GuardarAsync(confirmado: false)" disabled="@(EsteEpisodioGenerando || string.IsNullOrWhiteSpace(_texto))">Validar y guardar</button>
+        }
+    </div>
 
     @if (_motivo is not null)
     {
@@ -43,71 +65,87 @@
 
     @if (_errores.Count > 0)
     {
-        <p class="error-lista">El guion no se guardó. Errores:</p>
-        <ul class="error-lista">
-            @foreach (var error in _errores)
-            {
-                <li>Línea @error.Linea: @error.Motivo</li>
-            }
-        </ul>
+        <div class="error-lista">
+            <strong>El guion no se guardó. Errores:</strong>
+            <ul>
+                @foreach (var error in _errores)
+                {
+                    <li>Línea @error.Linea: @error.Motivo</li>
+                }
+            </ul>
+        </div>
     }
 </section>
 
-<section>
-    <h2>Escenas</h2>
+<section class="tarjeta">
+    <div class="tarjeta-cabecera">
+        <h2>Escenas<span class="contador">@_episodio.Escenas.Count</span></h2>
+        @if (_episodio.Escenas.Count > 0)
+        {
+            <div class="acciones">
+                @if (Generacion.EnCurso)
+                {
+                    <span class="estado estado-generando">@HayGeneracion</span>
+                }
+                <button class="primario" @onclick="GenerarAsync" disabled="@(Generacion.EnCurso || !_episodio.Escenas.Any(e => e.Estado == EstadoEscena.Pendiente))">Generar</button>
+            </div>
+        }
+    </div>
     @if (_episodio.Escenas.Count == 0)
     {
-        <p>Todavía no hay escenas: cargá un guion.</p>
+        <div class="vacio">
+            <strong>Todavía no hay escenas</strong>
+            Cargá un guion para dividirlo en escenas.
+        </div>
     }
     else
     {
-        <p>
-            <button @onclick="GenerarAsync" disabled="@(Generacion.EnCurso || !_episodio.Escenas.Any(e => e.Estado == EstadoEscena.Pendiente))">Generar</button>
-            @if (Generacion.EnCurso)
-            {
-                <span class="aviso">@HayGeneracion</span>
-            }
-        </p>
-
-        <table class="tabla">
-            <thead>
-                <tr><th>Escena</th><th>Encabezado</th><th>Estado</th><th></th></tr>
-            </thead>
-            <tbody>
-                @foreach (var escena in _episodio.Escenas)
-                {
-                    <tr>
-                        <td>@escena.Numero</td>
-                        <td>@(escena.IntExt == IntExt.Int ? "INT." : "EXT.") @escena.Lugar — @escena.MomentoDia</td>
-                        <td>
-                            @switch (escena.Estado)
-                            {
-                                case EstadoEscena.Pendiente:
-                                    <span>Pendiente</span>
-                                    break;
-                                case EstadoEscena.Generando:
-                                    <span>Generando · intento @(Notificador.IntentoEnCurso(escena.Id) ?? 1) de @RodajeIA.Web.Generacion.GeneradorEscena.MaximoIntentos</span>
-                                    break;
-                                case EstadoEscena.Generada:
-                                    <span>Generada</span>
-                                    break;
-                                case EstadoEscena.Error:
-                                    <span>Error</span>
-                                    <div class="motivo">@escena.MotivoError</div>
-                                    break;
-                            }
-                        </td>
-                        <td>
-                            <a href="escenas/@escena.Id">Abrir</a>
-                            @if (escena.Estado == EstadoEscena.Error)
-                            {
-                                <button @onclick="() => ReintentarAsync(escena.Id)" disabled="@Generacion.EnCurso" title="@(Generacion.EnCurso ? HayGeneracion : null)">Reintentar</button>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                    <tr><th>#</th><th>Encabezado</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var escena in _episodio.Escenas)
+                    {
+                        <tr>
+                            <td class="num"><span class="numero">@escena.Numero</span></td>
+                            <td class="lugar">
+                                @escena.Lugar
+                                <small>@(escena.IntExt == IntExt.Int ? "INT." : "EXT.") · @escena.MomentoDia</small>
+                            </td>
+                            <td>
+                                @switch (escena.Estado)
+                                {
+                                    case EstadoEscena.Pendiente:
+                                        <span class="estado estado-pendiente">Pendiente</span>
+                                        break;
+                                    case EstadoEscena.Generando:
+                                        <span class="estado estado-generando">Generando · intento @(Notificador.IntentoEnCurso(escena.Id) ?? 1) de @RodajeIA.Web.Generacion.GeneradorEscena.MaximoIntentos</span>
+                                        break;
+                                    case EstadoEscena.Generada:
+                                        <span class="estado estado-generada">Generada</span>
+                                        break;
+                                    case EstadoEscena.Error:
+                                        <span class="estado estado-error">Error</span>
+                                        <div class="motivo">@escena.MotivoError</div>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                <div class="acciones derecha">
+                                    @if (escena.Estado == EstadoEscena.Error)
+                                    {
+                                        <button @onclick="() => ReintentarAsync(escena.Id)" disabled="@Generacion.EnCurso" title="@(Generacion.EnCurso ? HayGeneracion : null)">Reintentar</button>
+                                    }
+                                    <a href="escenas/@escena.Id">Abrir →</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
 </section>
 

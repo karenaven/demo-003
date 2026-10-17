@@ -3,56 +3,69 @@
 
 <PageTitle>Series</PageTitle>
 
-<h1>Series</h1>
+<header class="encabezado">
+    <div>
+        <h1>Series</h1>
+        <p class="subtitulo">Cada serie guarda sus personajes y episodios para mantener la continuidad entre escenas.</p>
+    </div>
+</header>
 
-<form @onsubmit="CrearAsync">
-    <input @bind="_nueva" placeholder="Nombre de la serie" aria-label="Nombre de la serie" />
-    <button type="submit">Crear serie</button>
-</form>
-@if (_motivo is not null)
-{
-    <p class="motivo">@_motivo</p>
-}
+<section class="tarjeta">
+    <form class="en-linea" @onsubmit="CrearAsync">
+        <input @bind="_nueva" placeholder="Nombre de la nueva serie" aria-label="Nombre de la serie" />
+        <button type="submit" class="primario">Crear serie</button>
+    </form>
+    @if (_motivo is not null)
+    {
+        <p class="motivo">@_motivo</p>
+    }
+</section>
 
 @if (_series.Count == 0)
 {
-    <p>Todavía no hay series.</p>
+    <div class="vacio">
+        <strong>Todavía no hay series</strong>
+        Creá la primera con el formulario de arriba.
+    </div>
 }
 else
 {
-    <table class="tabla">
-        <tbody>
-            @foreach (var serie in _series)
-            {
-                <tr>
-                    @if (_editando == serie.Id)
-                    {
-                        <td><input @bind="_nombreEditado" aria-label="Nuevo nombre" /></td>
-                        <td>
-                            <button @onclick="() => RenombrarAsync(serie.Id)">Guardar</button>
-                            <button @onclick="() => _editando = null">Cancelar</button>
-                        </td>
-                    }
-                    else if (_eliminando == serie.Id)
-                    {
-                        <td>¿Eliminar «@serie.Nombre»? Se eliminan también sus personajes, episodios, escenas, bloques y variantes.</td>
-                        <td>
-                            <button @onclick="() => EliminarAsync(serie.Id)">Eliminar</button>
-                            <button @onclick="() => _eliminando = null">Cancelar</button>
-                        </td>
-                    }
-                    else
-                    {
-                        <td><a href="series/@serie.Id">@serie.Nombre</a></td>
-                        <td>
-                            <button @onclick="() => { _editando = serie.Id; _nombreEditado = serie.Nombre; }">Renombrar</button>
-                            <button @onclick="() => _eliminando = serie.Id">Eliminar</button>
-                        </td>
-                    }
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="rejilla">
+        @foreach (var serie in _series)
+        {
+            <article class="serie @(_eliminando == serie.Id ? "confirmando" : "")">
+                @if (_editando == serie.Id)
+                {
+                    <input @bind="_nombreEditado" aria-label="Nuevo nombre" />
+                    <div class="acciones">
+                        <button class="primario" @onclick="() => RenombrarAsync(serie.Id)">Guardar</button>
+                        <button class="fantasma" @onclick="() => _editando = null">Cancelar</button>
+                    </div>
+                }
+                else if (_eliminando == serie.Id)
+                {
+                    <p>¿Eliminar «@serie.Nombre»? Se eliminan también sus personajes, episodios, escenas, bloques y variantes.</p>
+                    <div class="acciones">
+                        <button class="peligro lleno" @onclick="() => EliminarAsync(serie.Id)">Eliminar</button>
+                        <button class="fantasma" @onclick="() => _eliminando = null">Cancelar</button>
+                    </div>
+                }
+                else
+                {
+                    <a class="titulo" href="series/@serie.Id">
+                        <span class="icono" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2" /><path d="m22 8-6 4 6 4V8Z" /></svg>
+                        </span>
+                        @serie.Nombre
+                    </a>
+                    <div class="acciones">
+                        <button class="fantasma" @onclick="() => { _editando = serie.Id; _nombreEditado = serie.Nombre; }">Renombrar</button>
+                        <button class="peligro fantasma" @onclick="() => _eliminando = serie.Id">Eliminar</button>
+                    </div>
+                }
+            </article>
+        }
+    </div>
 }
 
 @code {
