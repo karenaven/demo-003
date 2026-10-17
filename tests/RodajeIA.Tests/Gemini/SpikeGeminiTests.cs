@@ -86,7 +86,7 @@ public sealed class SpikeGeminiTests(ITestOutputHelper salida) : IDisposable
     private (GeneradorEscena Generador, ClienteMedido Cliente) Crear()
     {
         var configuracion = new ConfigurationBuilder()
-            .AddUserSecrets("rodajeia-web-001")
+            .AddUserSecrets("bbbe13ca-c173-41f8-b639-fc3921837a50")
             .AddEnvironmentVariables()
             .Build();
         if (string.IsNullOrWhiteSpace(configuracion["Gemini:ApiKey"]))

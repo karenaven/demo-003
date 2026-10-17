@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
-    <UserSecretsId>rodajeia-web-001</UserSecretsId>
+    <UserSecretsId>bbbe13ca-c173-41f8-b639-fc3921837a50</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
