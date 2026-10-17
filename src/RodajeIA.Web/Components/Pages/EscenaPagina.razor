@@ -4,6 +4,7 @@
 @inject RodajeIA.Web.Prompt.ArmadorPrompt Armador
 @inject RodajeIA.Web.Prompt.CopiaPrompt Copia
 @inject RodajeIA.Web.Generacion.NotificadorGeneracion Notificador
+@inject TomasService Tomas
 
 <PageTitle>@(_escena is null ? "Escena" : $"Escena {_escena.Numero}")</PageTitle>
 
@@ -22,6 +23,60 @@
         <span class="motivo">@_escena.MotivoError</span>
     }
 </p>
+
+@if (_escena.Estado == EstadoEscena.Generada)
+{
+    <section>
+        <h2>Bloques</h2>
+        @foreach (var bloque in _bloques)
+        {
+            <h3>Bloque @bloque.Clip</h3>
+            @foreach (var toma in bloque.Tomas)
+            {
+                <div class="toma">
+                    <strong>Toma @toma.Orden</strong>
+                    @foreach (var categoria in RodajeIA.Web.Configuracion.Vocabulario.NombresCategorias)
+                    {
+                        var actual = Valor(toma, categoria);
+                        <label>
+                            @Etiqueta(categoria)
+                            <select value="@(actual ?? "")" @onchange="e => EditarCampoAsync(toma.Id, categoria, e.Value?.ToString())">
+                                @if (!Tomas.EsObligatoria(categoria))
+                                {
+                                    <option value="">(sin valor)</option>
+                                }
+                                @if (actual is not null && toma.FueraDeVocabulario.Contains(categoria))
+                                {
+                                    <option value="@actual" disabled>@actual</option>
+                                }
+                                @foreach (var opcion in Tomas.Opciones(categoria))
+                                {
+                                    <option value="@opcion">@opcion</option>
+                                }
+                            </select>
+                            @if (toma.FueraDeVocabulario.Contains(categoria))
+                            {
+                                <span class="aviso">valor fuera del vocabulario</span>
+                            }
+                        </label>
+                    }
+                    <label>
+                        Acción
+                        <textarea value="@toma.Accion" @onchange="e => EditarAccionAsync(toma.Id, e.Value?.ToString() ?? string.Empty)"></textarea>
+                    </label>
+                    @if (toma.Dialogos.Count > 0)
+                    {
+                        <div>Diálogos: @string.Join(" ", toma.Dialogos)</div>
+                    }
+                    @if (_motivos.TryGetValue(toma.Id, out var motivo))
+                    {
+                        <p class="motivo">@motivo</p>
+                    }
+                </div>
+            }
+        }
+    </section>
+}
 
 @if (_prompt is not null)
 {
@@ -46,6 +101,8 @@
     private Escena? _escena;
     private string? _prompt;
     private RodajeIA.Web.Prompt.ResultadoCopia? _resultadoCopia;
+    private IReadOnlyList<BloqueRevision> _bloques = [];
+    private readonly Dictionary<int, string> _motivos = [];
 
     protected override void OnInitialized() => Notificador.EstadoEscenaCambiado += AlCambiarEscena;
 
@@ -70,6 +127,46 @@
         await using var db = await Fabrica.CreateDbContextAsync();
         _escena = await db.Escenas.Include(e => e.Episodio).AsNoTracking().SingleOrDefaultAsync(e => e.Id == EscenaId);
         _prompt = _escena is null ? null : await Armador.ArmarAsync(EscenaId);
+        _bloques = _escena is { Estado: EstadoEscena.Generada } ? await Tomas.ObtenerBloquesAsync(EscenaId) : [];
+    }
+
+    private static string? Valor(TomaRevision toma, string categoria) => categoria switch
+    {
+        RodajeIA.Web.Configuracion.Vocabulario.Plano => toma.Plano,
+        RodajeIA.Web.Configuracion.Vocabulario.Optica => toma.Optica,
+        RodajeIA.Web.Configuracion.Vocabulario.Iluminacion => toma.Iluminacion,
+        RodajeIA.Web.Configuracion.Vocabulario.Angulo => toma.Angulo,
+        _ => toma.Movimiento,
+    };
+
+    private static string Etiqueta(string categoria) => categoria switch
+    {
+        RodajeIA.Web.Configuracion.Vocabulario.Plano => "Plano",
+        RodajeIA.Web.Configuracion.Vocabulario.Optica => "Óptica",
+        RodajeIA.Web.Configuracion.Vocabulario.Iluminacion => "Iluminación",
+        RodajeIA.Web.Configuracion.Vocabulario.Angulo => "Ángulo",
+        _ => "Movimiento",
+    };
+
+    private async Task EditarCampoAsync(int tomaId, string categoria, string? valor) =>
+        await DespuesDeEditarAsync(tomaId, await Tomas.EditarCampoAsync(tomaId, categoria, valor));
+
+    private async Task EditarAccionAsync(int tomaId, string texto) =>
+        await DespuesDeEditarAsync(tomaId, await Tomas.EditarAccionAsync(tomaId, texto));
+
+    private async Task DespuesDeEditarAsync(int tomaId, Resultado resultado)
+    {
+        if (resultado.Motivo is { } motivo)
+        {
+            _motivos[tomaId] = motivo;
+        }
+        else
+        {
+            _motivos.Remove(tomaId);
+        }
+
+        _resultadoCopia = null;
+        await CargarAsync();
     }
 
     private async Task CopiarAsync()

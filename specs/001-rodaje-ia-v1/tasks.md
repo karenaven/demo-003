@@ -467,7 +467,7 @@ con el servicio, recrear el contexto y comprobar el prompt.
 
 ### Tests for User Story 5 ⚠️
 
-- [ ] T077 [P] [US5] Escribir `tests/RodajeIA.Tests/Servicios/TomasServiceTests.cs`:
+- [X] T077 [P] [US5] Escribir `tests/RodajeIA.Tests/Servicios/TomasServiceTests.cs`:
   - el detalle trae todos los bloques y tomas (`AC-07a`);
   - editar el plano a "primer plano" cambia el prompt (`AC-07b`);
   - editar la acción cambia el prompt (`AC-07c`);
@@ -479,17 +479,17 @@ con el servicio, recrear el contexto y comprobar el prompt.
 
 ### Implementation for User Story 5
 
-- [ ] T078 [US5] Implementar `src/RodajeIA.Web/Servicios/TomasService.cs` (FR-022 a FR-024, FR-015b, FR-023a):
+- [X] T078 [US5] Implementar `src/RodajeIA.Web/Servicios/TomasService.cs` (FR-022 a FR-024, FR-015b, FR-023a):
   - `ObtenerBloquesAsync(escenaId)`: tomas con la marca `FueraDeVocabulario` por campo y las líneas referenciadas, de solo lectura;
   - `EditarCampoAsync(tomaId, categoria, valor?)`: solo valores vigentes; `null` permitido para ángulo y movimiento;
   - `EditarAccionAsync(tomaId, texto)`: recortada y no vacía;
   - rechaza si la escena no está `Generada`.
-- [ ] T079 [US5] Agregar a `src/RodajeIA.Web/Components/Pages/EscenaPagina.razor` la sección "Bloques" (solo en `Generada`):
+- [X] T079 [US5] Agregar a `src/RodajeIA.Web/Components/Pages/EscenaPagina.razor` la sección "Bloques" (solo en `Generada`):
   - por toma, desplegables con los valores de `Vocabulario` (más "(sin valor)" para ángulo y movimiento) y la marca "valor fuera del vocabulario";
   - campo de acción editable, que guarda al confirmarse;
   - líneas de diálogo de solo lectura;
   - después de cada cambio se vuelve a armar el prompt mostrado.
-- [ ] T080 [US5] Registrar `TomasService` en `src/RodajeIA.Web/Program.cs`.
+- [X] T080 [US5] Registrar `TomasService` en `src/RodajeIA.Web/Program.cs`.
 
 **Checkpoint**: la revisión y la edición funcionan, y el prompt refleja cada cambio.
 
