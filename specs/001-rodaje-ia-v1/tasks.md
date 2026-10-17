@@ -164,14 +164,14 @@ personajes detectados, y la línea y el motivo de cada error ([contracts/guion.m
 
 > Escribirlos primero y comprobar que fallan.
 
-- [ ] T028 [P] [US1] Escribir `tests/RodajeIA.Tests/Guion/ParserGuionValidoTests.cs`:
+- [X] T028 [P] [US1] Escribir `tests/RodajeIA.Tests/Guion/ParserGuionValidoTests.cs`:
   - con la escena del Anexo A: encabezado y campos (`AC-04a`), 2 clips (`AC-04b`), acción y diálogos con y sin acotación (`AC-04c`);
   - texto en pantalla en un clip (`AC-04d`);
   - determinismo: el mismo guion parseado dos veces da lo mismo (`AC-04e`);
   - guion común en el encabezado (`AC-03o`) y líneas en blanco (`AC-03p`);
   - CRLF y BOM dan el mismo resultado y la misma numeración que LF (`AC-S03`);
   - comillas tipográficas e internas conservadas en `Original` (`AC-S07`, parte de parseo).
-- [ ] T029 [P] [US1] Escribir `tests/RodajeIA.Tests/Guion/ParserGuionErroresTests.cs`, un test por fila del catálogo E00 a E17, comprobando la línea y el motivo exacto del contrato. Cubre:
+- [X] T029 [P] [US1] Escribir `tests/RodajeIA.Tests/Guion/ParserGuionErroresTests.cs`, un test por fila del catálogo E00 a E17, comprobando la línea y el motivo exacto del contrato. Cubre:
   - `AC-03a`, `AC-03b`, `AC-03c`, `AC-03d`, `AC-03e`, `AC-03g`;
   - `AC-03h`, `AC-03i`, `AC-03j`, `AC-03k`, `AC-03l`, `AC-03m`, `AC-03n`;
   - `AC-03q`, `AC-03r`, `AC-03s`, `AC-03t`, `AC-03u`;
@@ -179,7 +179,7 @@ personajes detectados, y la línea y el motivo de cada error ([contracts/guion.m
   - `AC-S02` (texto del motivo), `AC-S04` (campo en dos líneas), `AC-S05` (100.001 caracteres da un único E00) y `AC-S06` (`Locacion:`);
   - que la lista de errores está ordenada por línea y código;
   - `SC-007`: todo guion con errores se rechaza completo y cada error tiene línea y motivo.
-- [ ] T030 [P] [US1] Escribir `tests/RodajeIA.Tests/Personajes/DetectorPersonajesTests.cs`:
+- [X] T030 [P] [US1] Escribir `tests/RodajeIA.Tests/Personajes/DetectorPersonajesTests.cs`:
   - acción (`AC-05a`) y marcador de diálogo (`AC-05b`);
   - personajes sin hoja que no se detectan (`AC-05c`, `AC-05d`);
   - "Anabel" (`AC-05e`) y "Jose Daniel" sin tilde (`AC-05f`);
@@ -189,7 +189,7 @@ personajes detectados, y la línea y el motivo de cada error ([contracts/guion.m
   - `JOSE DANIEL:` y "JOSÉ DANIEL entra." (`AC-S12`);
   - una acción en NFD que detecta a "José" (research R-04);
   - el orden de primera aparición, con desempate alfabético (`AC-S32`, parte de detección).
-- [ ] T031 [P] [US1] Escribir `tests/RodajeIA.Tests/Servicios/CargaGuionServiceTests.cs` con SQLite en memoria:
+- [X] T031 [P] [US1] Escribir `tests/RodajeIA.Tests/Servicios/CargaGuionServiceTests.cs` con SQLite en memoria:
   - guion válido guardado en el episodio (`AC-02a`);
   - carga sin episodio rechazada (`AC-02b`);
   - el reemplazo elimina las escenas, clips, bloques y variantes anteriores (`AC-02c`);
@@ -199,29 +199,29 @@ personajes detectados, y la línea y el motivo de cada error ([contracts/guion.m
 
 ### Implementation for User Story 1
 
-- [ ] T032 [P] [US1] Crear los records de resultado en `src/RodajeIA.Web/Guion/GuionParseado.cs` (`GuionParseado`, `EscenaParseada`, `ClipParseado`, `LineaDialogoParseada`, `TextoEnPantallaParseado`) y `src/RodajeIA.Web/Guion/ErrorGuion.cs` (`Linea`, `Codigo`, `Motivo`), junto con `ResultadoGuion` (`Valido(GuionParseado)` | `Invalido(IReadOnlyList<ErrorGuion>)`).
-- [ ] T033 [US1] Implementar `src/RodajeIA.Web/Guion/LectorLineas.cs` (FR-008b, FR-008d):
+- [X] T032 [P] [US1] Crear los records de resultado en `src/RodajeIA.Web/Guion/GuionParseado.cs` (`GuionParseado`, `EscenaParseada`, `ClipParseado`, `LineaDialogoParseada`, `TextoEnPantallaParseado`) y `src/RodajeIA.Web/Guion/ErrorGuion.cs` (`Linea`, `Codigo`, `Motivo`), junto con `ResultadoGuion` (`Valido(GuionParseado)` | `Invalido(IReadOnlyList<ErrorGuion>)`).
+- [X] T033 [US1] Implementar `src/RodajeIA.Web/Guion/LectorLineas.cs` (FR-008b, FR-008d):
   - corta en el límite de 100.000 caracteres;
   - descarta el BOM;
   - separa por LF, CRLF o CR;
   - numera las líneas físicas desde 1;
   - entrega cada línea recortada y marca las vacías.
-- [ ] T034 [US1] Implementar `src/RodajeIA.Web/Guion/ParserGuion.cs` como máquina de estados, según la gramática y el catálogo de [contracts/guion.md](contracts/guion.md) (FR-008 a FR-010, FR-008a, FR-008c, FR-008e, FR-008f).
+- [X] T034 [US1] Implementar `src/RodajeIA.Web/Guion/ParserGuion.cs` como máquina de estados, según la gramática y el catálogo de [contracts/guion.md](contracts/guion.md) (FR-008 a FR-010, FR-008a, FR-008c, FR-008e, FR-008f).
   - Acumula todos los errores y nunca devuelve un resultado parcial.
   - Los textos de los motivos salen de una sola tabla en `src/RodajeIA.Web/Guion/MotivosGuion.cs`.
-- [ ] T035 [US1] Implementar `src/RodajeIA.Web/Personajes/DetectorPersonajes.cs` (FR-011 a FR-012):
+- [X] T035 [US1] Implementar `src/RodajeIA.Web/Personajes/DetectorPersonajes.cs` (FR-011 a FR-012):
   - compara en NFC y por ordinal;
   - aplica el límite de palabra de FR-011b y el nombre más largo por posición;
   - compara el marcador con `NombreClave`;
   - ignora los nombres todo en mayúsculas;
   - calcula el orden de primera aparición por escena.
-- [ ] T036 [US1] Implementar `src/RodajeIA.Web/Servicios/CargaGuionService.cs`. Recibe `episodioId` y el texto, parsea, detecta con las hojas de la serie y, si es válido, en una transacción:
+- [X] T036 [US1] Implementar `src/RodajeIA.Web/Servicios/CargaGuionService.cs`. Recibe `episodioId` y el texto, parsea, detecta con las hojas de la serie y, si es válido, en una transacción:
   - reemplaza `Episodio.Guion`;
   - elimina las escenas anteriores;
   - inserta escenas en `Pendiente`, clips, líneas y personajes detectados.
 
   Si es inválido, devuelve los errores sin tocar la base (FR-006, FR-007, FR-009, FR-013).
-- [ ] T037 [US1] Crear `src/RodajeIA.Web/Components/Pages/Episodio.razor` (ruta `/episodios/{episodioId:int}`), según [contracts/ui.md](contracts/ui.md):
+- [X] T037 [US1] Crear `src/RodajeIA.Web/Components/Pages/EpisodioPagina.razor` (ruta `/episodios/{episodioId:int}`), según [contracts/ui.md](contracts/ui.md):
   - título del episodio;
   - `<textarea>` enlazado con `onchange` y botón "Validar y guardar";
   - confirmación si ya hay guion;
@@ -343,7 +343,7 @@ persistencia por escena y bloqueo global, sin red.
   - `SchemaSalida`, `ArmadorInstruccion`, `ValidadorRespuesta`, `RegistroIntentos`, `NotificadorGeneracion` y `GeneradorEscena`;
   - `ServicioGeneracion` como singleton y hosted service.
 - [ ] T058 [US2] Bloquear en `src/RodajeIA.Web/Servicios/CargaGuionService.cs` la carga de un guion en un episodio con generación en curso, con el motivo correspondiente (FR-004a), y agregar el test en `tests/RodajeIA.Tests/Servicios/CargaGuionServiceTests.cs` (`AC-S15`, parte de recarga).
-- [ ] T059 [US2] Ampliar `src/RodajeIA.Web/Components/Pages/Episodio.razor` (FR-019b):
+- [ ] T059 [US2] Ampliar `src/RodajeIA.Web/Components/Pages/EpisodioPagina.razor` (FR-019b):
   - botón "Generar" y, por escena en `Error`, el motivo y "Reintentar";
   - mientras hay una generación en curso, los botones deshabilitados con "Hay una generación en curso" y la carga de guion deshabilitada;
   - estado "Generando · intento {i} de 3" en vivo;
@@ -398,7 +398,7 @@ prompt y compararlo contra el texto esperado ([contracts/prompt.md](contracts/pr
   - no guarda el resultado (FR-015d).
 - [ ] T064 [P] [US3] Crear `src/RodajeIA.Web/wwwroot/js/portapapeles.js` con `window.rodajeia.copiar(texto)`, que usa `navigator.clipboard.writeText` y devuelve `true` o `false` (nunca lanza). Referenciarlo en `src/RodajeIA.Web/Components/App.razor`.
 - [ ] T065 [US3] Implementar `src/RodajeIA.Web/Prompt/CopiaPrompt.cs` (FR-028, FR-028a): `Task<ResultadoCopia> CopiarAsync(string prompt)` llama a `rodajeia.copiar` por `IJSRuntime`, captura las excepciones de interop y devuelve `Copiado` o `NoSePudo`, con el texto a mostrar para cada uno.
-- [ ] T066 [US3] Crear `src/RodajeIA.Web/Components/Pages/Escena.razor` (ruta `/escenas/{escenaId:int}`), según [contracts/ui.md](contracts/ui.md):
+- [ ] T066 [US3] Crear `src/RodajeIA.Web/Components/Pages/EscenaPagina.razor` (ruta `/escenas/{escenaId:int}`), según [contracts/ui.md](contracts/ui.md):
   - encabezado y estado;
   - en `Generada`: `<textarea readonly>` con el prompt, la cantidad de caracteres y el botón "Copiar", que usa `CopiaPrompt` y muestra su texto ("Copiado" o "No se pudo copiar; seleccioná el texto y copialo a mano") (FR-028, FR-028a);
   - en los demás estados: solo el estado y el motivo (FR-025c).
@@ -447,11 +447,11 @@ validaciones, la unicidad, las cascadas y los bloqueos durante una generación.
   - al renombrar una hoja con `PersonajeEnEscena`, devuelve el aviso "Los guiones cargados siguen usando el nombre anterior; recargalos para que coincidan.";
   - elimina en cascada aunque haya una generación en curso.
 - [ ] T073 [P] [US4] Implementar `src/RodajeIA.Web/Servicios/EpisodiosService.cs` (FR-004, FR-004a, FR-005): crear con número único, listar en orden, editar solo el título, eliminar (rechazado si `EpisodioEnCurso` es ese episodio) y obtener el detalle con las escenas en orden.
-- [ ] T074 [US4] Crear `src/RodajeIA.Web/Components/Pages/Series.razor` (ruta `/`): lista, alta, renombrado y eliminación con confirmación que menciona la cascada.
-- [ ] T075 [US4] Crear `src/RodajeIA.Web/Components/Pages/Serie.razor` (ruta `/series/{serieId:int}`), con pestañas:
+- [ ] T074 [US4] Crear `src/RodajeIA.Web/Components/Pages/SeriesPagina.razor` (ruta `/`): lista, alta, renombrado y eliminación con confirmación que menciona la cascada.
+- [ ] T075 [US4] Crear `src/RodajeIA.Web/Components/Pages/SeriePagina.razor` (ruta `/series/{serieId:int}`), con pestañas:
   - "Personajes": formulario de hoja con los mensajes de validación y el aviso de renombrado;
   - "Episodios": alta con número y título, edición del título, eliminación y enlace a `/episodios/{id}`.
-- [ ] T076 [US4] Registrar `SeriesService`, `HojasService`, `EpisodiosService` y `CargaGuionService` en `src/RodajeIA.Web/Program.cs`, y hacer que `Episodio.razor` cargue su detalle con `EpisodiosService`.
+- [ ] T076 [US4] Registrar `SeriesService`, `HojasService`, `EpisodiosService` y `CargaGuionService` en `src/RodajeIA.Web/Program.cs`, y hacer que `EpisodioPagina.razor` cargue su detalle con `EpisodiosService`.
 
 **Checkpoint**: el recorrido completo de la demo (SC-008) se puede hacer desde la UI.
 
@@ -484,7 +484,7 @@ con el servicio, recrear el contexto y comprobar el prompt.
   - `EditarCampoAsync(tomaId, categoria, valor?)`: solo valores vigentes; `null` permitido para ángulo y movimiento;
   - `EditarAccionAsync(tomaId, texto)`: recortada y no vacía;
   - rechaza si la escena no está `Generada`.
-- [ ] T079 [US5] Agregar a `src/RodajeIA.Web/Components/Pages/Escena.razor` la sección "Bloques" (solo en `Generada`):
+- [ ] T079 [US5] Agregar a `src/RodajeIA.Web/Components/Pages/EscenaPagina.razor` la sección "Bloques" (solo en `Generada`):
   - por toma, desplegables con los valores de `Vocabulario` (más "(sin valor)" para ángulo y movimiento) y la marca "valor fuera del vocabulario";
   - campo de acción editable, que guarda al confirmarse;
   - líneas de diálogo de solo lectura;
@@ -525,7 +525,7 @@ comprobar la instrucción y los prompts, y las restricciones según el estado.
   - edad, peinado y vestuario no pueden quedar vacíos si se reemplazan;
   - `ReemplazaHeridas` con un valor vacío significa "sin heridas";
   - solo en `Pendiente` o `Error`, con los motivos de rechazo de cada regla.
-- [ ] T083 [US6] Agregar a `src/RodajeIA.Web/Components/Pages/Escena.razor` la sección "Personajes y variantes":
+- [ ] T083 [US6] Agregar a `src/RodajeIA.Web/Components/Pages/EscenaPagina.razor` la sección "Personajes y variantes":
   - personajes detectados con su variante;
   - formulario de edad, peinado, vestuario y heridas/marcas, con la opción "Sin heridas";
   - controles deshabilitados, con el motivo, en `Generando` y `Generada`.
@@ -555,11 +555,11 @@ comprobar la instrucción y los prompts, y las restricciones según el estado.
 - **Setup (Phase 1)**: sin dependencias.
 - **Foundational (Phase 2)**: depende de Setup. Bloquea todas las historias.
 - **US1 (Phase 3)**: depende de Foundational.
-- **US2 (Phase 4)**: depende de US1 (necesita escenas cargadas y `Episodio.razor`).
+- **US2 (Phase 4)**: depende de US1 (necesita escenas cargadas y `EpisodioPagina.razor`).
 - **US3 (Phase 5)**: depende de Foundational para el motor y la hoja efectiva. Sus tests usan escenas `Generada` creadas en la base de test, así que se puede hacer en paralelo con US2. En la app real necesita a US2 para tener escenas generadas.
 - **US4 (Phase 6)**: depende de Foundational. Las validaciones de eliminación usan `ServicioGeneracion.EpisodioEnCurso` (T055); si US2 no está terminada, empezar con una interfaz `IEstadoGeneracion` y completarla después.
-- **US5 (Phase 7)**: depende de US3 (`ArmadorPrompt` y `Escena.razor`).
-- **US6 (Phase 8)**: depende de US3 (`Escena.razor`) y usa `GeneradorEscena` (US2) en `AC-S39`.
+- **US5 (Phase 7)**: depende de US3 (`ArmadorPrompt` y `EscenaPagina.razor`).
+- **US6 (Phase 8)**: depende de US3 (`EscenaPagina.razor`) y usa `GeneradorEscena` (US2) en `AC-S39`.
 - **Polish (Phase 9)**: depende de todas las historias.
 
 ### Dentro de cada historia
@@ -567,7 +567,7 @@ comprobar la instrucción y los prompts, y las restricciones según el estado.
 - T017 depende de T016: la base de test se crea aplicando las migraciones.
 - Los tests van primero y MUST fallar antes de implementar.
 - Primero los records y los servicios, después los componentes Razor y al final el registro en `Program.cs`.
-- `Program.cs` y `Escena.razor` se tocan en varias historias: esas tareas no son [P] entre sí.
+- `Program.cs` y `EscenaPagina.razor` se tocan en varias historias: esas tareas no son [P] entre sí.
 
 ### Parallel Opportunities
 

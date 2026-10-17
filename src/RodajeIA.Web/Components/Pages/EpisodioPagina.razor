@@ -1,0 +1,122 @@
+@page "/episodios/{EpisodioId:int}"
+@inject IDbContextFactory<RodajeDbContext> Fabrica
+@inject CargaGuionService CargaGuion
+
+<PageTitle>@(_episodio is null ? "Episodio" : $"Episodio {_episodio.Numero}")</PageTitle>
+
+@if (_episodio is null)
+{
+    <p>No existe el episodio.</p>
+    return;
+}
+
+<p><a href="series/@_episodio.SerieId">← @_episodio.Serie?.Nombre</a></p>
+<h1>Episodio @_episodio.Numero: @_episodio.Titulo</h1>
+
+<section>
+    <h2>Guion</h2>
+    <textarea class="guion" @bind="_texto" placeholder="Pegá el guion en texto plano" aria-label="Guion"></textarea>
+
+    @if (_pidiendoConfirmacion)
+    {
+        <p class="aviso">El episodio ya tiene un guion. Si lo reemplazás, se eliminan sus escenas, clips, bloques y variantes.</p>
+        <button @onclick="() => GuardarAsync(confirmado: true)">Reemplazar guion</button>
+        <button @onclick="() => _pidiendoConfirmacion = false">Cancelar</button>
+    }
+    else
+    {
+        <button @onclick="() => GuardarAsync(confirmado: false)" disabled="@string.IsNullOrWhiteSpace(_texto)">Validar y guardar</button>
+    }
+
+    @if (_motivo is not null)
+    {
+        <p class="motivo">@_motivo</p>
+    }
+
+    @if (_errores.Count > 0)
+    {
+        <p class="error-lista">El guion no se guardó. Errores:</p>
+        <ul class="error-lista">
+            @foreach (var error in _errores)
+            {
+                <li>Línea @error.Linea: @error.Motivo</li>
+            }
+        </ul>
+    }
+</section>
+
+<section>
+    <h2>Escenas</h2>
+    @if (_episodio.Escenas.Count == 0)
+    {
+        <p>Todavía no hay escenas: cargá un guion.</p>
+    }
+    else
+    {
+        <table class="tabla">
+            <thead>
+                <tr><th>Escena</th><th>Encabezado</th><th>Estado</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var escena in _episodio.Escenas.OrderBy(e => e.Numero))
+                {
+                    <tr>
+                        <td>@escena.Numero</td>
+                        <td>@(escena.IntExt == IntExt.Int ? "INT." : "EXT.") @escena.Lugar — @escena.MomentoDia</td>
+                        <td>@escena.Estado</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public int EpisodioId { get; set; }
+
+    private Episodio? _episodio;
+    private string _texto = "";
+    private bool _pidiendoConfirmacion;
+    private string? _motivo;
+    private IReadOnlyList<RodajeIA.Web.Guion.ErrorGuion> _errores = [];
+
+    protected override async Task OnParametersSetAsync() => await CargarEpisodioAsync();
+
+    private async Task CargarEpisodioAsync()
+    {
+        await using var db = await Fabrica.CreateDbContextAsync();
+        _episodio = await db.Episodios
+            .Include(e => e.Serie)
+            .Include(e => e.Escenas)
+            .AsNoTracking()
+            .SingleOrDefaultAsync(e => e.Id == EpisodioId);
+    }
+
+    private async Task GuardarAsync(bool confirmado)
+    {
+        _motivo = null;
+        _errores = [];
+        if (!confirmado && _episodio?.Guion is not null)
+        {
+            _pidiendoConfirmacion = true;
+            return;
+        }
+
+        _pidiendoConfirmacion = false;
+        switch (await CargaGuion.CargarAsync(_episodio?.Id, _texto))
+        {
+            case ResultadoCarga.Guardado:
+                _texto = "";
+                break;
+            case ResultadoCarga.Rechazado rechazado:
+                _errores = rechazado.Errores;
+                break;
+            case ResultadoCarga.NoPermitido noPermitido:
+                _motivo = noPermitido.Motivo;
+                break;
+        }
+
+        await CargarEpisodioAsync();
+    }
+}

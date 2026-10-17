@@ -50,9 +50,10 @@ dotnet_naming_symbols.campos_privados.applicable_accessibilities = private
 dotnet_naming_style.guion_bajo_camel.required_prefix = _
 dotnet_naming_style.guion_bajo_camel.capitalization = camel_case
 
-# Los tests usan nombres descriptivos con guiones bajos
-[tests/**.cs]
+# Los tests usan nombres descriptivos con guiones bajos y consultas cortas en memoria
+[tests/**/*.cs]
 dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.xUnit1051.severity = none
 
 # Migraciones generadas por dotnet ef
 [src/RodajeIA.Web/Datos/Migrations/*.cs]
