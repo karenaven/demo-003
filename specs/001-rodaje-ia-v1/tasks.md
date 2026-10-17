@@ -368,7 +368,7 @@ prompt y compararlo contra el texto esperado ([contracts/prompt.md](contracts/pr
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T061 [P] [US3] Escribir `tests/RodajeIA.Tests/Prompt/ArmadorPromptTests.cs`:
+- [X] T061 [P] [US3] Escribir `tests/RodajeIA.Tests/Prompt/ArmadorPromptTests.cs`:
   - las seis secciones en orden para la escena del Anexo A (`AC-08a`);
   - "Bloque 1:", "Bloque 2:" y "Bloque 3:" en orden (`AC-08b`);
   - sin "Heridas/marcas" cuando la hoja no las tiene (`AC-08c`);
@@ -384,25 +384,25 @@ prompt y compararlo contra el texto esperado ([contracts/prompt.md](contracts/pr
   - diálogos de una toma en orden del guion (`AC-S35`);
   - la toma sin ángulo ni movimiento coincide con el ejemplo esperado del contrato;
   - editar el vestuario de la hoja base de Ana después de generar la escena cambia el prompt de esa escena, sin regenerarla (`AC-S38`, parte de edición; FR-003a).
-- [ ] T062 [P] [US3] Escribir `tests/RodajeIA.Tests/Prompt/CopiaPromptTests.cs` con un `IJSRuntime` falso:
+- [X] T062 [P] [US3] Escribir `tests/RodajeIA.Tests/Prompt/CopiaPromptTests.cs` con un `IJSRuntime` falso:
   - "Copiar" pasa a `rodajeia.copiar` exactamente el texto que devuelve `ArmadorPrompt` y, si el JS devuelve `true`, el resultado es "Copiado" (`AC-08d`);
   - si devuelve `false` o lanza, el resultado es "No se pudo copiar; seleccioná el texto y copialo a mano" (`AC-S36`).
 
 ### Implementation for User Story 3
 
-- [ ] T063 [US3] Implementar `src/RodajeIA.Web/Prompt/ArmadorPrompt.cs` (FR-025 a FR-027, FR-032):
+- [X] T063 [US3] Implementar `src/RodajeIA.Web/Prompt/ArmadorPrompt.cs` (FR-025 a FR-027, FR-032):
   - `Task<string?> ArmarAsync(int escenaId)`: carga la escena, sus clips, bloques, tomas, líneas referenciadas, personajes presentes en orden y variantes;
   - devuelve `null` si la escena no está `Generada`;
   - arma cada sección con `MotorMolde` y `HojaEfectiva.Renderizar`;
   - inserta `linea.original` en orden de `Posicion` y `clip.textoEnPantallaOriginal`;
   - no guarda el resultado (FR-015d).
-- [ ] T064 [P] [US3] Crear `src/RodajeIA.Web/wwwroot/js/portapapeles.js` con `window.rodajeia.copiar(texto)`, que usa `navigator.clipboard.writeText` y devuelve `true` o `false` (nunca lanza). Referenciarlo en `src/RodajeIA.Web/Components/App.razor`.
-- [ ] T065 [US3] Implementar `src/RodajeIA.Web/Prompt/CopiaPrompt.cs` (FR-028, FR-028a): `Task<ResultadoCopia> CopiarAsync(string prompt)` llama a `rodajeia.copiar` por `IJSRuntime`, captura las excepciones de interop y devuelve `Copiado` o `NoSePudo`, con el texto a mostrar para cada uno.
-- [ ] T066 [US3] Crear `src/RodajeIA.Web/Components/Pages/EscenaPagina.razor` (ruta `/escenas/{escenaId:int}`), según [contracts/ui.md](contracts/ui.md):
+- [X] T064 [P] [US3] Crear `src/RodajeIA.Web/wwwroot/js/portapapeles.js` con `window.rodajeia.copiar(texto)`, que usa `navigator.clipboard.writeText` y devuelve `true` o `false` (nunca lanza). Referenciarlo en `src/RodajeIA.Web/Components/App.razor`.
+- [X] T065 [US3] Implementar `src/RodajeIA.Web/Prompt/CopiaPrompt.cs` (FR-028, FR-028a): `Task<ResultadoCopia> CopiarAsync(string prompt)` llama a `rodajeia.copiar` por `IJSRuntime`, captura las excepciones de interop y devuelve `Copiado` o `NoSePudo`, con el texto a mostrar para cada uno.
+- [X] T066 [US3] Crear `src/RodajeIA.Web/Components/Pages/EscenaPagina.razor` (ruta `/escenas/{escenaId:int}`), según [contracts/ui.md](contracts/ui.md):
   - encabezado y estado;
   - en `Generada`: `<textarea readonly>` con el prompt, la cantidad de caracteres y el botón "Copiar", que usa `CopiaPrompt` y muestra su texto ("Copiado" o "No se pudo copiar; seleccioná el texto y copialo a mano") (FR-028, FR-028a);
   - en los demás estados: solo el estado y el motivo (FR-025c).
-- [ ] T067 [US3] Registrar `MotorMolde`, `ArmadorPrompt` y `CopiaPrompt` en `src/RodajeIA.Web/Program.cs`.
+- [X] T067 [US3] Registrar `MotorMolde`, `ArmadorPrompt` y `CopiaPrompt` en `src/RodajeIA.Web/Program.cs`.
 
 **Checkpoint**: las tres historias P1 están completas. Del guion al prompt copiable, sin edición
 manual.

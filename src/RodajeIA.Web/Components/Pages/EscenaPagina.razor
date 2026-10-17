@@ -1,0 +1,82 @@
+@page "/escenas/{EscenaId:int}"
+@implements IDisposable
+@inject IDbContextFactory<RodajeDbContext> Fabrica
+@inject RodajeIA.Web.Prompt.ArmadorPrompt Armador
+@inject RodajeIA.Web.Prompt.CopiaPrompt Copia
+@inject RodajeIA.Web.Generacion.NotificadorGeneracion Notificador
+
+<PageTitle>@(_escena is null ? "Escena" : $"Escena {_escena.Numero}")</PageTitle>
+
+@if (_escena is null)
+{
+    <p>No existe la escena.</p>
+    return;
+}
+
+<p><a href="episodios/@_escena.EpisodioId">← Episodio @_escena.Episodio?.Numero: @_escena.Episodio?.Titulo</a></p>
+<h1>Escena @_escena.Numero — @(_escena.IntExt == IntExt.Int ? "INT." : "EXT.") @_escena.Lugar — @_escena.MomentoDia</h1>
+<p>
+    Estado: <strong>@_escena.Estado</strong>
+    @if (_escena.Estado == EstadoEscena.Error)
+    {
+        <span class="motivo">@_escena.MotivoError</span>
+    }
+</p>
+
+@if (_prompt is not null)
+{
+    <section>
+        <h2>Prompt final</h2>
+        <textarea class="prompt" readonly value="@_prompt" aria-label="Prompt final"></textarea>
+        <p>
+            <button @onclick="CopiarAsync">Copiar</button>
+            <span>@_prompt.Length caracteres</span>
+            @if (_resultadoCopia is not null)
+            {
+                <span class="@(_resultadoCopia.Copiado ? "" : "aviso")">@_resultadoCopia.Mensaje</span>
+            }
+        </p>
+    </section>
+}
+
+@code {
+    [Parameter]
+    public int EscenaId { get; set; }
+
+    private Escena? _escena;
+    private string? _prompt;
+    private RodajeIA.Web.Prompt.ResultadoCopia? _resultadoCopia;
+
+    protected override void OnInitialized() => Notificador.EstadoEscenaCambiado += AlCambiarEscena;
+
+    protected override async Task OnParametersSetAsync() => await CargarAsync();
+
+    public void Dispose() => Notificador.EstadoEscenaCambiado -= AlCambiarEscena;
+
+    private void AlCambiarEscena(RodajeIA.Web.Generacion.CambioEstadoEscena cambio)
+    {
+        if (cambio.EscenaId == EscenaId)
+        {
+            _ = InvokeAsync(async () =>
+            {
+                await CargarAsync();
+                StateHasChanged();
+            });
+        }
+    }
+
+    private async Task CargarAsync()
+    {
+        await using var db = await Fabrica.CreateDbContextAsync();
+        _escena = await db.Escenas.Include(e => e.Episodio).AsNoTracking().SingleOrDefaultAsync(e => e.Id == EscenaId);
+        _prompt = _escena is null ? null : await Armador.ArmarAsync(EscenaId);
+    }
+
+    private async Task CopiarAsync()
+    {
+        if (_prompt is not null)
+        {
+            _resultadoCopia = await Copia.CopiarAsync(_prompt);
+        }
+    }
+}

@@ -3,6 +3,7 @@ using RodajeIA.Web.Components;
 using RodajeIA.Web.Configuracion;
 using RodajeIA.Web.Datos;
 using RodajeIA.Web.Generacion;
+using RodajeIA.Web.Prompt;
 using RodajeIA.Web.Servicios;
 
 ConfiguracionRodaje configuracion;
@@ -49,6 +50,10 @@ builder.Services.AddSingleton<IEstadoGeneracion>(sp => sp.GetRequiredService<Ser
 builder.Services.AddHostedService(sp => sp.GetRequiredService<ServicioGeneracion>());
 
 builder.Services.AddSingleton<CargaGuionService>();
+
+// Prompt final (contracts/prompt.md).
+builder.Services.AddSingleton<ArmadorPrompt>();
+builder.Services.AddScoped<CopiaPrompt>();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()

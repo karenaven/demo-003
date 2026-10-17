@@ -28,6 +28,33 @@ public static class EscenaDePrueba
             .SingleAsync(e => e.Id == escenaId);
     }
 
+    /// <summary>
+    /// Marca la escena como generada con una toma por clip ("plano medio", "50mm", sin ángulo ni
+    /// movimiento) que referencia todas sus líneas. <paramref name="ajustar"/> permite cambiar cada toma.
+    /// </summary>
+    public static async Task MarcarGeneradaAsync(BaseDatosEnMemoria baseDatos, int escenaId, Action<Clip, Toma>? ajustar = null)
+    {
+        await using var db = baseDatos.CreateDbContext();
+        var escena = await db.Escenas.Include(e => e.Clips).ThenInclude(c => c.Lineas).SingleAsync(e => e.Id == escenaId);
+        foreach (var clip in escena.Clips)
+        {
+            var toma = new Toma
+            {
+                Orden = 1,
+                Plano = "plano medio",
+                Optica = "50mm",
+                Iluminacion = "continuidad con la luz base",
+                Accion = $"Acción del clip {clip.Numero}.",
+                Dialogos = clip.Lineas.OrderBy(l => l.Posicion).Select(l => new TomaDialogo { LineaDialogoId = l.Id }).ToList(),
+            };
+            ajustar?.Invoke(clip, toma);
+            db.Bloques.Add(new Bloque { ClipId = clip.Id, Tomas = [toma] });
+        }
+
+        escena.Estado = EstadoEscena.Generada;
+        await db.SaveChangesAsync();
+    }
+
     /// <summary>Una respuesta válida: un bloque por clip con una sola toma que usa todas sus líneas.</summary>
     public static string RespuestaValida(Escena escena) =>
         Respuesta(escena.Clips.OrderBy(c => c.Numero).Select(c => (c.Numero, Ids(c))));
