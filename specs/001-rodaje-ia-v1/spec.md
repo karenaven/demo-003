@@ -890,7 +890,9 @@ y el vocabulario vigentes, como en el spike del 2026-10-04.
 - Se usa un servicio externo de IA de texto con salida estructurada que admite listas cerradas de
   valores; el spike del 2026-10-04 confirmó que cumple SC-006 (p95 de 22,2 s). La medición MUST
   repetirse cuando cambia el modelo de IA, `config/instruccion-generacion.txt` o el vocabulario
-  (que cambia el schema de salida).
+  (que cambia el schema de salida). Excepción: el cambio del 2026-10-17 a la instrucción (no
+  usar comillas en la acción y repartir los diálogos en el orden del clip, FR-017a) no amplía el
+  contexto ni cambia el formato de la respuesta, así que el spike del 2026-10-04 sigue vigente.
 - El vocabulario (`config/vocabulario.json`), el estilo global (`config/estilo.txt`), la
   instrucción de generación (`config/instruccion-generacion.txt`) y el molde del prompt
   (`config/molde-prompt.json`) ya existen como archivos versionados y se editan sin pantalla de
