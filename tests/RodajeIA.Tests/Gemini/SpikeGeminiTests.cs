@@ -86,6 +86,7 @@ public sealed class SpikeGeminiTests(ITestOutputHelper salida) : IDisposable
     private (GeneradorEscena Generador, ClienteMedido Cliente) Crear()
     {
         var configuracion = new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.json"), optional: false)
             .AddUserSecrets("bbbe13ca-c173-41f8-b639-fc3921837a50")
             .AddEnvironmentVariables()
             .Build();
@@ -93,6 +94,8 @@ public sealed class SpikeGeminiTests(ITestOutputHelper salida) : IDisposable
         {
             Assert.Skip("Falta Gemini:ApiKey (user-secrets de la app o variable Gemini__ApiKey).");
         }
+
+        salida.WriteLine($"Modelo: {configuracion["Gemini:Modelo"]}");
 
         var cliente = new ClienteMedido(new ClienteGemini(configuracion, new SchemaSalida(_config.Vocabulario)));
         var generador = new GeneradorEscena(

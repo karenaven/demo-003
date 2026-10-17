@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <Content Include="..\..\config\**" LinkBase="config" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\src\RodajeIA.Web\appsettings.json" Link="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

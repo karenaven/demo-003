@@ -50,7 +50,8 @@ Anotá junto al resultado el equipo (CPU, RAM y sistema operativo) y el modelo u
 | --- | --- | --- | --- |
 | 2026-10-17 | SC-004 (guion 10 × 20 clips) | p95 = 8,55 ms | WSL2 (Linux 6.18), 8 núcleos |
 | 2026-10-17 | SC-005 (prompt de 20 clips) | p95 = 13,27 ms | WSL2 (Linux 6.18), 8 núcleos |
-| — | SC-006 y SC-002 | Pendiente: no hay `Gemini:ApiKey` configurada | — |
+| 2026-10-17 | SC-006 (escena de 20 clips, 10 generaciones) | p95 = 20,0 s (mín. 4,4 s, mediana ≈ 9 s) | WSL2 (Linux 6.18), 8 núcleos; `gemini-3.1-flash-lite` |
+| 2026-10-17 | SC-002 (Anexo A y 20 clips, 10 generaciones c/u) | 20 de 20 generadas | WSL2 (Linux 6.18), 8 núcleos; `gemini-3.1-flash-lite` |
 
 ## Recorrido manual (criterio de demo, SC-008: < 2 minutos)
 
