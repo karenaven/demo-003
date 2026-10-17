@@ -105,7 +105,7 @@ Los tiempos se miden como p95 en el equipo local donde corre la app; RNF-03 y RN
 | RNF-04 | Armado del prompt final por plantilla, por escena | < 1 s (p95) |
 | RNF-05 | Generación con Gemini de una escena de 20 clips | < 30 s (p95). Medido en el spike: 22,2 s (p95), ver resultados abajo |
 | RNF-06 | Tiempo máximo de espera por llamada a Gemini | 60 s |
-| RNF-07 | Reintentos por escena ante error, timeout o respuesta inválida | 2 reintentos (3 intentos en total): espera de 10 s antes del primer reintento y de 30 s antes del segundo |
+| RNF-07 | Reintentos por escena ante error, timeout o respuesta inválida | 2 reintentos (3 intentos en total): espera de 10 s antes del primer reintento y de 30 s antes del segundo. Excepción: un error de configuración (falta la clave, clave rechazada, modelo inexistente) no se reintenta (spec 001, FR-018a) |
 
 RNF-01 y RNF-02 (límites de escenas y clips) pasaron al Anexo A porque son reglas de validación de RF-03a. RNF-08 (progreso por escena) pasó a RF-10a–c porque describe un comportamiento, no una métrica. Esos IDs no se reutilizan.
 

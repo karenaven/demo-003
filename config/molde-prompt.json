@@ -3,7 +3,8 @@
   "convenciones": {
     "variables": "{{...}} se reemplaza literal por el valor guardado; la IA nunca reescribe estos valores (RN-03, RN-04).",
     "opcionales": "[...] se omite completo si alguna variable que contiene está vacía.",
-    "puntuacion": "Un \".\" justo después de una variable se omite si el valor ya termina en . ! ? o …; el valor se inserta igual."
+    "puntuacion": "Un \".\" justo después de una variable se omite si el valor ya termina en . ! ? o …; el valor se inserta igual.",
+    "literales": "linea.original es la línea de diálogo del guion tal como se escribió (marcador, acotación y comillas), sin espacios al inicio y al final; clip.textoEnPantallaOriginal es el texto en pantalla con sus comillas originales (FR-026a)."
   },
   "separadorSecciones": "\n\n",
   "secciones": [
@@ -43,9 +44,9 @@
       "tituloBloque": "Bloque {{bloque.numero}}:",
       "toma": "{{toma.plano}}[, {{toma.movimiento}}][, {{toma.angulo}}], óptica {{toma.optica}}. {{toma.accion}}[ {{toma.dialogos}}] Iluminación: {{toma.iluminacion}}.",
       "separadorTomas": " Corte a ",
-      "lineaDialogo": "{{linea.personaje}}[ ({{linea.acotacion}})]: \"{{linea.texto}}\"",
+      "lineaDialogo": "{{linea.original}}",
       "separadorDialogos": " ",
-      "cierreConTextoEnPantalla": "Único texto visible en pantalla: \"{{clip.textoEnPantalla}}\"",
+      "cierreConTextoEnPantalla": "Único texto visible en pantalla: {{clip.textoEnPantallaOriginal}}",
       "cierreSinTextoEnPantalla": "Sin subtítulos ni texto en pantalla."
     }
   ]

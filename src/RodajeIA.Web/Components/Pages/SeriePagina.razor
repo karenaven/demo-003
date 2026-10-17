@@ -1,0 +1,312 @@
+@page "/series/{SerieId:int}"
+@inject SeriesService Series
+@inject HojasService Hojas
+@inject EpisodiosService Episodios
+
+<PageTitle>@(_serie?.Nombre ?? "Serie")</PageTitle>
+
+@if (_serie is null)
+{
+    <p>No existe la serie.</p>
+    return;
+}
+
+<nav class="migas" aria-label="Ruta">
+    <a href="">Series</a>
+</nav>
+<header class="encabezado">
+    <div>
+        <span class="etiqueta-previa">Serie</span>
+        <h1>@_serie.Nombre</h1>
+        <p class="subtitulo">@_hojas.Count @(_hojas.Count == 1 ? "personaje" : "personajes") · @_episodios.Count @(_episodios.Count == 1 ? "episodio" : "episodios")</p>
+    </div>
+</header>
+
+<nav class="pestanas">
+    <button class="@(_pestana == "personajes" ? "activa" : "")" @onclick='() => _pestana = "personajes"'>Personajes<span class="contador">@_hojas.Count</span></button>
+    <button class="@(_pestana == "episodios" ? "activa" : "")" @onclick='() => _pestana = "episodios"'>Episodios<span class="contador">@_episodios.Count</span></button>
+</nav>
+
+@if (_motivo is not null)
+{
+    <p class="motivo">@_motivo</p>
+}
+
+@if (_aviso is not null)
+{
+    <p class="aviso">@_aviso</p>
+}
+
+@if (_pestana == "personajes")
+{
+    <div class="dos-columnas">
+        <section class="tarjeta pegajosa">
+            <div class="tarjeta-cabecera">
+                <h2>@(_hojaEditada is null ? "Nuevo personaje" : $"Editar {_hojaEditada.Nombre}")</h2>
+            </div>
+            <form class="formulario" @onsubmit="GuardarHojaAsync">
+                <div class="fila">
+                    <label>Nombre <input @bind="_hoja.Nombre" /></label>
+                    <label>Edad <input @bind="_hoja.Edad" /></label>
+                </div>
+                <label>Descripción física <span class="opcional">(incluye la voz)</span> <textarea @bind="_hoja.DescripcionFisica"></textarea></label>
+                <div class="fila">
+                    <label>Peinado <input @bind="_hoja.Peinado" /></label>
+                    <label>Vestuario <input @bind="_hoja.Vestuario" /></label>
+                </div>
+                <label>Heridas/marcas <span class="opcional">(opcional)</span> <input @bind="_hoja.HeridasMarcas" /></label>
+                <label>Personalidad <input @bind="_hoja.Personalidad" /></label>
+                <label>Rol <input @bind="_hoja.Rol" /></label>
+                <div class="acciones">
+                    <button type="submit" class="primario">@(_hojaEditada is null ? "Crear personaje" : "Guardar cambios")</button>
+                    @if (_hojaEditada is not null)
+                    {
+                        <button type="button" class="fantasma" @onclick="CancelarEdicion">Cancelar</button>
+                    }
+                </div>
+            </form>
+        </section>
+
+        <section class="tarjeta">
+            <div class="tarjeta-cabecera">
+                <h2>Personajes</h2>
+            </div>
+            @if (_hojas.Count == 0)
+            {
+                <div class="vacio">
+                    <strong>Todavía no hay personajes</strong>
+                    Sus hojas se insertan literales en cada prompt.
+                </div>
+            }
+            else
+            {
+                <ul class="lista">
+                    @foreach (var hoja in _hojas)
+                    {
+                        <li class="@(_eliminandoHoja == hoja.Id ? "confirmando" : "")">
+                            <div class="principal">
+                                <span class="avatar" aria-hidden="true">@Inicial(hoja.Nombre)</span>
+                                <div>
+                                    <strong>@hoja.Nombre</strong>
+                                    <div class="detalle">@hoja.Edad · @hoja.Rol</div>
+                                </div>
+                            </div>
+                            <div class="acciones">
+                                @if (_eliminandoHoja == hoja.Id)
+                                {
+                                    <span class="motivo">¿Eliminar a @hoja.Nombre y sus variantes?</span>
+                                    <button class="peligro lleno" @onclick="() => EliminarHojaAsync(hoja.Id)">Eliminar</button>
+                                    <button class="fantasma" @onclick="() => _eliminandoHoja = null">Cancelar</button>
+                                }
+                                else
+                                {
+                                    <button class="fantasma" @onclick="() => EditarHoja(hoja)">Editar</button>
+                                    <button class="peligro fantasma" @onclick="() => _eliminandoHoja = hoja.Id">Eliminar</button>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </div>
+}
+else
+{
+    <div class="dos-columnas">
+        <section class="tarjeta pegajosa">
+            <div class="tarjeta-cabecera">
+                <h2>Nuevo episodio</h2>
+            </div>
+            <form class="formulario" @onsubmit="CrearEpisodioAsync">
+                <label>Número <input type="number" min="1" @bind="_numero" /></label>
+                <label>Título <input @bind="_titulo" /></label>
+                <div class="acciones"><button type="submit" class="primario">Crear episodio</button></div>
+            </form>
+        </section>
+
+        <section class="tarjeta">
+            <div class="tarjeta-cabecera">
+                <h2>Episodios</h2>
+            </div>
+            @if (_episodios.Count == 0)
+            {
+                <div class="vacio">
+                    <strong>Todavía no hay episodios</strong>
+                    Creá uno y cargale el guion.
+                </div>
+            }
+            else
+            {
+                <ul class="lista">
+                    @foreach (var episodio in _episodios)
+                    {
+                        <li class="@(_eliminandoEpisodio == episodio.Id ? "confirmando" : "")">
+                            <div class="principal">
+                                <span class="numero">@episodio.Numero</span>
+                                @if (_editandoEpisodio == episodio.Id)
+                                {
+                                    <input @bind="_tituloEditado" aria-label="Nuevo título" />
+                                }
+                                else if (_eliminandoEpisodio == episodio.Id)
+                                {
+                                    <span class="motivo">¿Eliminar «@episodio.Titulo» con su guion, escenas, bloques y variantes?</span>
+                                }
+                                else
+                                {
+                                    <a href="episodios/@episodio.Id"><strong>@episodio.Titulo</strong></a>
+                                }
+                            </div>
+                            <div class="acciones">
+                                @if (_editandoEpisodio == episodio.Id)
+                                {
+                                    <button class="primario" @onclick="() => EditarTituloAsync(episodio.Id)">Guardar</button>
+                                    <button class="fantasma" @onclick="() => _editandoEpisodio = null">Cancelar</button>
+                                }
+                                else if (_eliminandoEpisodio == episodio.Id)
+                                {
+                                    <button class="peligro lleno" @onclick="() => EliminarEpisodioAsync(episodio.Id)">Eliminar</button>
+                                    <button class="fantasma" @onclick="() => _eliminandoEpisodio = null">Cancelar</button>
+                                }
+                                else
+                                {
+                                    <button class="fantasma" @onclick="() => { _editandoEpisodio = episodio.Id; _tituloEditado = episodio.Titulo; }">Editar título</button>
+                                    <button class="peligro fantasma" @onclick="() => _eliminandoEpisodio = episodio.Id">Eliminar</button>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int SerieId { get; set; }
+
+    private sealed class FormularioHoja
+    {
+        public string Nombre { get; set; } = "";
+        public string Edad { get; set; } = "";
+        public string DescripcionFisica { get; set; } = "";
+        public string Peinado { get; set; } = "";
+        public string Vestuario { get; set; } = "";
+        public string? HeridasMarcas { get; set; }
+        public string Personalidad { get; set; } = "";
+        public string Rol { get; set; } = "";
+
+        public DatosHoja ADatos() => new(Nombre, Edad, DescripcionFisica, Peinado, Vestuario, HeridasMarcas, Personalidad, Rol);
+    }
+
+    private Serie? _serie;
+    private string _pestana = "personajes";
+    private string? _motivo;
+    private string? _aviso;
+
+    private IReadOnlyList<HojaPersonaje> _hojas = [];
+    private FormularioHoja _hoja = new();
+    private HojaPersonaje? _hojaEditada;
+    private int? _eliminandoHoja;
+
+    private IReadOnlyList<Episodio> _episodios = [];
+    private int _numero = 1;
+    private string _titulo = "";
+    private int? _editandoEpisodio;
+    private string _tituloEditado = "";
+    private int? _eliminandoEpisodio;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _serie = await Series.ObtenerAsync(SerieId);
+        await RecargarAsync();
+    }
+
+    private async Task RecargarAsync()
+    {
+        _hojas = await Hojas.ListarAsync(SerieId);
+        _episodios = await Episodios.ListarAsync(SerieId);
+    }
+
+    private static string Inicial(string nombre) => nombre.Length > 0 ? char.ToUpperInvariant(nombre[0]).ToString() : "?";
+
+    private void Mostrar(Resultado resultado)
+    {
+        _motivo = resultado.Motivo;
+        _aviso = resultado.Aviso;
+    }
+
+    private async Task GuardarHojaAsync()
+    {
+        var resultado = _hojaEditada is null
+            ? await Hojas.CrearAsync(SerieId, _hoja.ADatos())
+            : await Hojas.EditarAsync(_hojaEditada.Id, _hoja.ADatos());
+        Mostrar(resultado);
+        if (resultado.Ok)
+        {
+            CancelarEdicion();
+            _aviso = resultado.Aviso;
+            await RecargarAsync();
+        }
+    }
+
+    private void EditarHoja(HojaPersonaje hoja)
+    {
+        _hojaEditada = hoja;
+        _hoja = new FormularioHoja
+        {
+            Nombre = hoja.Nombre,
+            Edad = hoja.Edad,
+            DescripcionFisica = hoja.DescripcionFisica,
+            Peinado = hoja.Peinado,
+            Vestuario = hoja.Vestuario,
+            HeridasMarcas = hoja.HeridasMarcas,
+            Personalidad = hoja.Personalidad,
+            Rol = hoja.Rol,
+        };
+    }
+
+    private void CancelarEdicion()
+    {
+        _hojaEditada = null;
+        _hoja = new FormularioHoja();
+    }
+
+    private async Task EliminarHojaAsync(int hojaId)
+    {
+        Mostrar(await Hojas.EliminarAsync(hojaId));
+        _eliminandoHoja = null;
+        await RecargarAsync();
+    }
+
+    private async Task CrearEpisodioAsync()
+    {
+        var resultado = await Episodios.CrearAsync(SerieId, _numero, _titulo);
+        Mostrar(resultado);
+        if (resultado.Ok)
+        {
+            _titulo = "";
+            await RecargarAsync();
+            _numero = _episodios.Max(e => e.Numero) + 1;
+        }
+    }
+
+    private async Task EditarTituloAsync(int episodioId)
+    {
+        var resultado = await Episodios.EditarTituloAsync(episodioId, _tituloEditado);
+        Mostrar(resultado);
+        if (resultado.Ok)
+        {
+            _editandoEpisodio = null;
+            await RecargarAsync();
+        }
+    }
+
+    private async Task EliminarEpisodioAsync(int episodioId)
+    {
+        Mostrar(await Episodios.EliminarAsync(episodioId));
+        _eliminandoEpisodio = null;
+        await RecargarAsync();
+    }
+}

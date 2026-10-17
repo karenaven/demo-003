@@ -1,0 +1,237 @@
+@page "/episodios/{EpisodioId:int}"
+@implements IDisposable
+@inject EpisodiosService Episodios
+@inject CargaGuionService CargaGuion
+@inject RodajeIA.Web.Generacion.ServicioGeneracion Generacion
+@inject RodajeIA.Web.Generacion.NotificadorGeneracion Notificador
+
+<PageTitle>@(_episodio is null ? "Episodio" : $"Episodio {_episodio.Numero}")</PageTitle>
+
+@if (_episodio is null)
+{
+    <p>No existe el episodio.</p>
+    return;
+}
+
+<nav class="migas" aria-label="Ruta">
+    <a href="">Series</a>
+    <span class="sep">/</span>
+    <a href="series/@_episodio.SerieId">@_episodio.Serie?.Nombre</a>
+</nav>
+<header class="encabezado">
+    <div>
+        <span class="etiqueta-previa">Episodio @_episodio.Numero</span>
+        <h1>@_episodio.Titulo</h1>
+        @if (_episodio.Escenas.Count > 0)
+        {
+            <p class="subtitulo">@_episodio.Escenas.Count(e => e.Estado == EstadoEscena.Generada) de @_episodio.Escenas.Count escenas generadas</p>
+        }
+    </div>
+</header>
+
+<section class="tarjeta">
+    <div class="tarjeta-cabecera">
+        <div>
+            <h2>Guion</h2>
+            <p class="ayuda">Se valida completo: si hay un error, no se guarda nada y se indica la línea.</p>
+        </div>
+    </div>
+    @if (EsteEpisodioGenerando)
+    {
+        <p class="aviso">@CargaGuionService.GeneracionEnCurso</p>
+    }
+
+    <textarea class="guion" @bind="_texto" disabled="@EsteEpisodioGenerando" placeholder="Pegá el guion en texto plano" aria-label="Guion"></textarea>
+
+    <div class="pie-acciones">
+        @if (_pidiendoConfirmacion)
+        {
+            <p class="aviso">El episodio ya tiene un guion. Si lo reemplazás, se eliminan sus escenas, clips, bloques y variantes.</p>
+            <div class="acciones">
+                <button class="peligro lleno" @onclick="() => GuardarAsync(confirmado: true)">Reemplazar guion</button>
+                <button class="fantasma" @onclick="() => _pidiendoConfirmacion = false">Cancelar</button>
+            </div>
+        }
+        else
+        {
+            <button class="primario" @onclick="() => GuardarAsync(confirmado: false)" disabled="@(EsteEpisodioGenerando || string.IsNullOrWhiteSpace(_texto))">Validar y guardar</button>
+        }
+    </div>
+
+    @if (_motivo is not null)
+    {
+        <p class="motivo">@_motivo</p>
+    }
+
+    @if (_errores.Count > 0)
+    {
+        <div class="error-lista">
+            <strong>El guion no se guardó. Errores:</strong>
+            <ul>
+                @foreach (var error in _errores)
+                {
+                    <li>Línea @error.Linea: @error.Motivo</li>
+                }
+            </ul>
+        </div>
+    }
+</section>
+
+<section class="tarjeta">
+    <div class="tarjeta-cabecera">
+        <h2>Escenas<span class="contador">@_episodio.Escenas.Count</span></h2>
+        @if (_episodio.Escenas.Count > 0)
+        {
+            <div class="acciones">
+                @if (Generacion.EnCurso)
+                {
+                    <span class="estado estado-generando">@HayGeneracion</span>
+                }
+                <button class="primario" @onclick="GenerarAsync" disabled="@(Generacion.EnCurso || !_episodio.Escenas.Any(e => e.Estado == EstadoEscena.Pendiente))">Generar</button>
+            </div>
+        }
+    </div>
+    @if (_episodio.Escenas.Count == 0)
+    {
+        <div class="vacio">
+            <strong>Todavía no hay escenas</strong>
+            Cargá un guion para dividirlo en escenas.
+        </div>
+    }
+    else
+    {
+        <div class="tabla-contenedor">
+            <table class="tabla">
+                <thead>
+                    <tr><th>#</th><th>Encabezado</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var escena in _episodio.Escenas)
+                    {
+                        <tr>
+                            <td class="num"><span class="numero">@escena.Numero</span></td>
+                            <td class="lugar">
+                                @escena.Lugar
+                                <small>@(escena.IntExt == IntExt.Int ? "INT." : "EXT.") · @escena.MomentoDia</small>
+                            </td>
+                            <td>
+                                @switch (escena.Estado)
+                                {
+                                    case EstadoEscena.Pendiente:
+                                        <span class="estado estado-pendiente">Pendiente</span>
+                                        break;
+                                    case EstadoEscena.Generando:
+                                        <span class="estado estado-generando">Generando · intento @(Notificador.IntentoEnCurso(escena.Id) ?? 1) de @RodajeIA.Web.Generacion.GeneradorEscena.MaximoIntentos</span>
+                                        break;
+                                    case EstadoEscena.Generada:
+                                        <span class="estado estado-generada">Generada</span>
+                                        break;
+                                    case EstadoEscena.Error:
+                                        <span class="estado estado-error">Error</span>
+                                        <div class="motivo">@escena.MotivoError</div>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                <div class="acciones derecha">
+                                    @if (escena.Estado == EstadoEscena.Error)
+                                    {
+                                        <button @onclick="() => ReintentarAsync(escena.Id)" disabled="@Generacion.EnCurso" title="@(Generacion.EnCurso ? HayGeneracion : null)">Reintentar</button>
+                                    }
+                                    <a href="escenas/@escena.Id">Abrir →</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@code {
+    private const string HayGeneracion = "Hay una generación en curso";
+
+    [Parameter]
+    public int EpisodioId { get; set; }
+
+    private Episodio? _episodio;
+    private string _texto = "";
+    private bool _pidiendoConfirmacion;
+    private string? _motivo;
+    private IReadOnlyList<RodajeIA.Web.Guion.ErrorGuion> _errores = [];
+
+    private bool EsteEpisodioGenerando => Generacion.EpisodioEnCurso == EpisodioId;
+
+    protected override void OnInitialized()
+    {
+        Notificador.EstadoEscenaCambiado += AlCambiarEscena;
+        Notificador.GeneracionEnCursoCambiada += AlCambiarGeneracion;
+    }
+
+    protected override async Task OnParametersSetAsync() => await CargarEpisodioAsync();
+
+    public void Dispose()
+    {
+        Notificador.EstadoEscenaCambiado -= AlCambiarEscena;
+        Notificador.GeneracionEnCursoCambiada -= AlCambiarGeneracion;
+    }
+
+    private void AlCambiarEscena(RodajeIA.Web.Generacion.CambioEstadoEscena cambio)
+    {
+        if (cambio.EpisodioId == EpisodioId)
+        {
+            _ = InvokeAsync(async () =>
+            {
+                await CargarEpisodioAsync();
+                StateHasChanged();
+            });
+        }
+    }
+
+    private void AlCambiarGeneracion(bool enCurso, int? episodioId) => _ = InvokeAsync(StateHasChanged);
+
+    private async Task CargarEpisodioAsync()
+    {
+        _episodio = await Episodios.ObtenerDetalleAsync(EpisodioId);
+    }
+
+    private async Task GuardarAsync(bool confirmado)
+    {
+        _motivo = null;
+        _errores = [];
+        if (!confirmado && _episodio?.Guion is not null)
+        {
+            _pidiendoConfirmacion = true;
+            return;
+        }
+
+        _pidiendoConfirmacion = false;
+        switch (await CargaGuion.CargarAsync(_episodio?.Id, _texto))
+        {
+            case ResultadoCarga.Guardado:
+                _texto = "";
+                break;
+            case ResultadoCarga.Rechazado rechazado:
+                _errores = rechazado.Errores;
+                break;
+            case ResultadoCarga.NoPermitido noPermitido:
+                _motivo = noPermitido.Motivo;
+                break;
+        }
+
+        await CargarEpisodioAsync();
+    }
+
+    private async Task GenerarAsync()
+    {
+        _motivo = await Generacion.TryIniciarEpisodioAsync(EpisodioId) ? null : HayGeneracion;
+        await CargarEpisodioAsync();
+    }
+
+    private async Task ReintentarAsync(int escenaId)
+    {
+        _motivo = await Generacion.TryReintentarAsync(escenaId) ? null : HayGeneracion;
+        await CargarEpisodioAsync();
+    }
+}
