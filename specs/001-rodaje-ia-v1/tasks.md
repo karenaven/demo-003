@@ -34,17 +34,17 @@ por separado.
 
 **Purpose**: crear la solución, los proyectos y las herramientas.
 
-- [ ] T001 Crear la solución y los proyectos:
+- [X] T001 Crear la solución y los proyectos:
   - `dotnet new blazor --interactivity Server --all-interactive --framework net10.0 -o src/RodajeIA.Web`;
   - un proyecto de clases `tests/RodajeIA.Tests` (net10.0) con `OutputType=Exe`, como pide xUnit v3;
   - `RodajeIA.slnx` en la raíz, con los dos proyectos y la referencia de Tests a Web.
-- [ ] T002 Agregar a `src/RodajeIA.Web/RodajeIA.Web.csproj` los paquetes `Microsoft.EntityFrameworkCore.Sqlite` 10.0.13, `Microsoft.EntityFrameworkCore.Design` 10.0.13 (`PrivateAssets=all`) y `Google.GenAI` 1.26.1 (research R-01).
-- [ ] T003 Agregar a `tests/RodajeIA.Tests/RodajeIA.Tests.csproj` los paquetes `xunit.v3` 4.0.2, `xunit.runner.visualstudio` 4.0.1, `Microsoft.NET.Test.Sdk` 18.11.0 y `Microsoft.Extensions.TimeProvider.Testing` 10.11.0 (research R-01).
-- [ ] T004 [P] Crear `.config/dotnet-tools.json` con la herramienta local `dotnet-ef` 10.0.13.
-- [ ] T005 [P] Crear `.editorconfig` en la raíz con las reglas de C#: indentación de 4 espacios, `file_scoped` namespaces, `var` cuando el tipo es evidente, llaves obligatorias, nullable habilitado y severidad `warning` para estilo (lo verifica `dotnet format --verify-no-changes`).
-- [ ] T006 [P] Ampliar `.gitignore` en la raíz con `bin/`, `obj/`, `*.db`, `*.db-shm`, `*.db-wal` y `logs/`.
-- [ ] T007 Enlazar `config/**` como contenido copiado a la salida (`<Content Include="..\..\config\**" LinkBase="config" CopyToOutputDirectory="PreserveNewest" />`) en `src/RodajeIA.Web/RodajeIA.Web.csproj` y en `tests/RodajeIA.Tests/RodajeIA.Tests.csproj`, para que la app y los tests lean los archivos versionados reales.
-- [ ] T008 Habilitar `<Nullable>enable</Nullable>`, `<ImplicitUsings>enable</ImplicitUsings>` y `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` en los dos `.csproj`. Comprobar que `dotnet build`, `dotnet test` y `dotnet format --verify-no-changes` pasan con la plantilla vacía.
+- [X] T002 Agregar a `src/RodajeIA.Web/RodajeIA.Web.csproj` los paquetes `Microsoft.EntityFrameworkCore.Sqlite` 10.0.13, `Microsoft.EntityFrameworkCore.Design` 10.0.13 (`PrivateAssets=all`) y `Google.GenAI` 1.26.1 (research R-01).
+- [X] T003 Agregar a `tests/RodajeIA.Tests/RodajeIA.Tests.csproj` los paquetes `xunit.v3` 4.0.2, `xunit.runner.visualstudio` 4.0.1, `Microsoft.NET.Test.Sdk` 18.11.0 y `Microsoft.Extensions.TimeProvider.Testing` 10.11.0 (research R-01).
+- [X] T004 [P] Crear `.config/dotnet-tools.json` con la herramienta local `dotnet-ef` 10.0.13.
+- [X] T005 [P] Crear `.editorconfig` en la raíz con las reglas de C#: indentación de 4 espacios, `file_scoped` namespaces, `var` cuando el tipo es evidente, llaves obligatorias, nullable habilitado y severidad `warning` para estilo (lo verifica `dotnet format --verify-no-changes`).
+- [X] T006 [P] Ampliar `.gitignore` en la raíz con `bin/`, `obj/`, `*.db`, `*.db-shm`, `*.db-wal` y `logs/`.
+- [X] T007 Enlazar `config/**` como contenido copiado a la salida (`<Content Include="..\..\config\**" LinkBase="config" CopyToOutputDirectory="PreserveNewest" />`) en `src/RodajeIA.Web/RodajeIA.Web.csproj` y en `tests/RodajeIA.Tests/RodajeIA.Tests.csproj`, para que la app y los tests lean los archivos versionados reales.
+- [X] T008 Habilitar `<Nullable>enable</Nullable>`, `<ImplicitUsings>enable</ImplicitUsings>` y `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` en los dos `.csproj`. Comprobar que `dotnet build`, `dotnet test` y `dotnet format --verify-no-changes` pasan con la plantilla vacía.
 
 ---
 
@@ -57,66 +57,66 @@ utilidades de test que usan varias historias.
 
 ### Modelo de datos
 
-- [ ] T009 [P] Crear `src/RodajeIA.Web/Datos/Entidades/Serie.cs` (`Id`, `Nombre` "Obligatorio") y `src/RodajeIA.Web/Datos/Entidades/Episodio.cs` (Anexo B; RF-01a–d, RF-11a–d; FR-001, FR-004):
+- [X] T009 [P] Crear `src/RodajeIA.Web/Datos/Entidades/Serie.cs` (`Id`, `Nombre` "Obligatorio") y `src/RodajeIA.Web/Datos/Entidades/Episodio.cs` (Anexo B; RF-01a–d, RF-11a–d; FR-001, FR-004):
   - `Id`, `SerieId`;
   - `Numero`: "≥ 1. Índice único (SerieId, Numero). No se edita";
   - `Titulo`: "Obligatorio; editable";
   - `Guion`: "El texto tal como se pegó"; nulo hasta la primera carga válida.
-- [ ] T010 [P] Crear `src/RodajeIA.Web/Datos/Entidades/HojaPersonaje.cs` (Anexo B; RF-01e–h; FR-002, FR-002a, FR-002b):
+- [X] T010 [P] Crear `src/RodajeIA.Web/Datos/Entidades/HojaPersonaje.cs` (Anexo B; RF-01e–h; FR-002, FR-002a, FR-002b):
   - `Id`, `SerieId`;
   - `Nombre`;
   - `NombreClave`: "`Nombre.ToUpperInvariant()`. Índice único (SerieId, NombreClave)";
   - `Edad`, `DescripcionFisica`, `Peinado`, `Vestuario`, `Personalidad` y `Rol`, obligatorios;
   - `HeridasMarcas`: opcional.
-- [ ] T011 [P] Crear `src/RodajeIA.Web/Datos/Entidades/Escena.cs` con los enums `IntExt` (`Int` | `Ext`) y `EstadoEscena` (`Pendiente` | `Generando` | `Generada` | `Error`) (Anexo B; RF-04d, RF-10d; FR-010, FR-019, FR-019a):
+- [X] T011 [P] Crear `src/RodajeIA.Web/Datos/Entidades/Escena.cs` con los enums `IntExt` (`Int` | `Ext`) y `EstadoEscena` (`Pendiente` | `Generando` | `Generada` | `Error`) (Anexo B; RF-04d, RF-10d; FR-010, FR-019, FR-019a):
   - `Numero`: "1..10. Índice único (EpisodioId, Numero)";
   - `IntExt`, `Lugar`, `MomentoDia`, `Locacion`, `Iluminacion`, `PuestaEnEscena`, `Audio`, `Estado`;
   - `MotivoError`: "Solo en `Error`; se borra al salir de `Error`".
-- [ ] T012 [P] Crear `src/RodajeIA.Web/Datos/Entidades/Clip.cs` y `src/RodajeIA.Web/Datos/Entidades/LineaDialogo.cs` (Anexo B; RF-04b, RF-04c, RN-04; FR-010, FR-016a, FR-026a):
+- [X] T012 [P] Crear `src/RodajeIA.Web/Datos/Entidades/Clip.cs` y `src/RodajeIA.Web/Datos/Entidades/LineaDialogo.cs` (Anexo B; RF-04b, RF-04c, RN-04; FR-010, FR-016a, FR-026a):
   - `Clip.Numero`: "1..20. Índice único (EscenaId, Numero)";
   - `Clip.Accion`: "Las líneas de acción del clip, unidas con `\n`";
   - `Clip.TextoEnPantalla` y `Clip.TextoEnPantallaOriginal`;
   - `LineaDialogo`: `Posicion`, `Personaje`, `Acotacion?`, `Texto` y `Original` ("La línea completa del guion, sin espacios al inicio ni al final");
   - la propiedad calculada, no mapeada, `IdIa => $"c{Clip.Numero}-d{Posicion}"`.
-- [ ] T013 [P] Crear `src/RodajeIA.Web/Datos/Entidades/PersonajeEnEscena.cs` (PK compuesta, `Orden` "Orden de primera aparición en la escena"), `PersonajeEnClip.cs` y `VarianteEscena.cs` (Anexo B; RF-05a, RF-05b, RF-09a, RN-05; FR-011, FR-025b, FR-029):
+- [X] T013 [P] Crear `src/RodajeIA.Web/Datos/Entidades/PersonajeEnEscena.cs` (PK compuesta, `Orden` "Orden de primera aparición en la escena"), `PersonajeEnClip.cs` y `VarianteEscena.cs` (Anexo B; RF-05a, RF-05b, RF-09a, RN-05; FR-011, FR-025b, FR-029):
   - `Edad?`, `Peinado?`, `Vestuario?`: "Nulo = no reemplaza";
   - `ReemplazaHeridas` (bool) y `HeridasMarcas?`;
   - índice único (EscenaId, HojaId).
 
   Los tres van en `src/RodajeIA.Web/Datos/Entidades/`.
-- [ ] T014 [P] Crear `src/RodajeIA.Web/Datos/Entidades/Bloque.cs` ("Índice único (un bloque por clip)"), `Toma.cs` y `TomaDialogo.cs` (PK compuesta `TomaId` + `LineaDialogoId`), en `src/RodajeIA.Web/Datos/Entidades/` (Anexo B; RF-06a, RF-07b, RN-09; FR-015, FR-023).
+- [X] T014 [P] Crear `src/RodajeIA.Web/Datos/Entidades/Bloque.cs` ("Índice único (un bloque por clip)"), `Toma.cs` y `TomaDialogo.cs` (PK compuesta `TomaId` + `LineaDialogoId`), en `src/RodajeIA.Web/Datos/Entidades/` (Anexo B; RF-06a, RF-07b, RN-09; FR-015, FR-023).
   - `Toma`: `Orden`, `Plano`, `Optica`, `Iluminacion`, `Angulo?`, `Movimiento?` y `Accion` ("No vacía; sin espacios al inicio ni al final").
-- [ ] T015 Crear `src/RodajeIA.Web/Datos/RodajeDbContext.cs` (RF-01d, RF-01h, RF-02b, RF-11d; FR-001, FR-003, FR-004, FR-007):
+- [X] T015 Crear `src/RodajeIA.Web/Datos/RodajeDbContext.cs` (RF-01d, RF-01h, RF-02b, RF-11d; FR-001, FR-003, FR-004, FR-007):
   - los `DbSet` de todas las entidades;
   - los índices únicos de [data-model.md](data-model.md);
   - eliminación en cascada en todas las relaciones padre → hijo, incluidas Hoja → Variante, PersonajeEnEscena y PersonajeEnClip, y LineaDialogo → TomaDialogo;
   - los enums guardados como texto.
-- [ ] T016 Generar la migración inicial con `dotnet ef migrations add Inicial --project src/RodajeIA.Web --output-dir Datos/Migrations` y comprobar que `dotnet ef database update` crea `rodajeia.db` (constitución: restricciones técnicas, persistencia).
-- [ ] T017 Crear `tests/RodajeIA.Tests/Fakes/BaseDatosEnMemoria.cs`:
+- [X] T016 Generar la migración inicial con `dotnet ef migrations add Inicial --project src/RodajeIA.Web --output-dir Datos/Migrations` y comprobar que `dotnet ef database update` crea `rodajeia.db` (constitución: restricciones técnicas, persistencia).
+- [X] T017 Crear `tests/RodajeIA.Tests/Fakes/BaseDatosEnMemoria.cs`:
   - abre una `SqliteConnection("DataSource=:memory:")`, crea el esquema con `Database.Migrate()` (no con `EnsureCreated`, para que la suite pruebe las migraciones de `Datos/Migrations`) y expone un `IDbContextFactory<RodajeDbContext>` que reutiliza la conexión;
   - incluye ayudas para crear una serie, sus hojas "Ana" y "José Daniel" y un episodio.
-- [ ] T018 [P] Crear `tests/RodajeIA.Tests/Fakes/Ejemplos.cs` con:
+- [X] T018 [P] Crear `tests/RodajeIA.Tests/Fakes/Ejemplos.cs` con:
   - la escena válida del Anexo A, como constante;
   - las hojas de ejemplo de "Ana" (con heridas/marcas vacías) y "José Daniel", con todos sus campos;
   - un generador de guiones de N escenas × M clips para los tests de límites y de rendimiento.
 
 ### Configuración (`config/`)
 
-- [ ] T019 [P] Escribir `tests/RodajeIA.Tests/Configuracion/CargadorConfiguracionTests.cs` con un caso por cada regla de [contracts/config.md](contracts/config.md):
+- [X] T019 [P] Escribir `tests/RodajeIA.Tests/Configuracion/CargadorConfiguracionTests.cs` con un caso por cada regla de [contracts/config.md](contracts/config.md):
   - para cada archivo, que falte, que tenga JSON inválido o que tenga el problema de esa regla (vocabulario, estilo, instrucción y molde);
   - que se informen varios archivos inválidos a la vez;
   - que los cuatro archivos reales del repositorio son válidos.
 
   Cubre `AC-S29`.
-- [ ] T020 [P] Crear los modelos inmutables en `src/RodajeIA.Web/Configuracion/` (RN-02, RN-06, Anexo D, Anexo E; FR-015, FR-025a):
+- [X] T020 [P] Crear los modelos inmutables en `src/RodajeIA.Web/Configuracion/` (RN-02, RN-06, Anexo D, Anexo E; FR-015, FR-025a):
   - `Vocabulario.cs`: categorías, valores, `obligatorio`, y `Contiene(categoria, valor)`;
   - `MoldePrompt.cs`: secciones, plantillas y separadores tal como en `config/molde-prompt.json`;
   - `EstiloGlobal.cs`;
   - `InstruccionGeneracion.cs`: el texto, con los marcadores `{{escena}}` y `{{personajes}}`.
-- [ ] T021 Implementar `src/RodajeIA.Web/Configuracion/CargadorConfiguracion.cs` y `ConfiguracionInvalidaException.cs`.
+- [X] T021 Implementar `src/RodajeIA.Web/Configuracion/CargadorConfiguracion.cs` y `ConfiguracionInvalidaException.cs`.
   - El cargador lee los cuatro archivos desde `{AppContext.BaseDirectory}/config` y los valida según [contracts/config.md](contracts/config.md) (FR-015a, FR-015c).
   - La excepción acumula todos los problemas en la forma "{archivo}: {problema}".
-- [ ] T022 Configurar `src/RodajeIA.Web/Program.cs` (FR-015d):
+- [X] T022 Configurar `src/RodajeIA.Web/Program.cs` (FR-015d):
   - cargar la configuración antes de `app.Run()`; si falla, escribir `Configuración inválida: …` en la consola y salir con código 1;
   - registrar `Vocabulario`, `MoldePrompt`, `EstiloGlobal` e `InstruccionGeneracion` como singletons;
   - registrar `AddDbContextFactory<RodajeDbContext>` con SQLite (`Data Source=rodajeia.db`);
@@ -125,23 +125,23 @@ utilidades de test que usan varias historias.
 
 ### Motor del molde y hoja efectiva (los usan US2, US3 y US6)
 
-- [ ] T023 [P] Escribir `tests/RodajeIA.Tests/Prompt/MotorMoldeTests.cs` según [contracts/prompt.md](contracts/prompt.md):
+- [X] T023 [P] Escribir `tests/RodajeIA.Tests/Prompt/MotorMoldeTests.cs` según [contracts/prompt.md](contracts/prompt.md):
   - reemplazo literal de `{{x}}`;
   - `[ … ]` omitido completo si una variable está vacía o es nula;
   - los separadores nunca aparecen al principio ni al final;
   - regla de puntuación: se omite el "." después de un valor terminado en `.`, `!`, `?` o `…` (`AC-S34`).
-- [ ] T024 Implementar `src/RodajeIA.Web/Prompt/MotorMolde.cs`. Recibe una plantilla y un diccionario de variables y aplica las tres construcciones del contrato. No usa regex sobre el texto de los valores; los valores se insertan sin modificarse.
-- [ ] T025 [P] Escribir `tests/RodajeIA.Tests/Personajes/HojaEfectivaTests.cs`:
+- [X] T024 Implementar `src/RodajeIA.Web/Prompt/MotorMolde.cs`. Recibe una plantilla y un diccionario de variables y aplica las tres construcciones del contrato. No usa regex sobre el texto de los valores; los valores se insertan sin modificarse.
+- [X] T025 [P] Escribir `tests/RodajeIA.Tests/Personajes/HojaEfectivaTests.cs`:
   - una variante que reemplaza edad, peinado y vestuario;
   - `ReemplazaHeridas` con `HeridasMarcas` vacío da una hoja sin heridas;
   - sin variante se obtiene la hoja base.
 
   Cubre `AC-09a` en su parte de cálculo.
-- [ ] T026 Implementar `src/RodajeIA.Web/Personajes/HojaEfectiva.cs`:
+- [X] T026 Implementar `src/RodajeIA.Web/Personajes/HojaEfectiva.cs`:
   - un record con los campos de la hoja;
   - `Calcular(HojaPersonaje, VarianteEscena?)`;
   - `Renderizar(MoldePrompt, MotorMolde)` con la plantilla `porPersonaje`, que se reutiliza en la instrucción y en el prompt para que el texto sea idéntico (constitución III).
-- [ ] T027 Crear el layout en español (RF-11e; contracts/ui.md):
+- [X] T027 Crear el layout en español (RF-11e; contracts/ui.md):
   - `src/RodajeIA.Web/Components/Layout/MainLayout.razor`;
   - `NavMenu.razor`, con el enlace "Series" a `/`;
   - `<html lang="es">` en `Components/App.razor`;
