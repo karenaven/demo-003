@@ -715,10 +715,14 @@ PRD (constitución, principio V).
   tarda como máximo 3 × 60 s + 10 s + 30 s = 220 s antes de quedar en "error". Durante los
   intentos y las esperas la escena sigue en "generando", y la vista muestra el intento en curso
   (por ejemplo "intento 2 de 3").
-- **FR-018a**: Un error de configuración de la IA (falta la clave, clave rechazada, modelo
-  inexistente) MUST NOT reintentarse: la escena pasa a "error" de inmediato con ese motivo, y la
-  generación en curso se detiene, dejando en "pendiente" las escenas que esperaban su turno.
-  Es la única excepción a FR-018 y al avance de la cola de FR-014a.
+- **FR-018a**: Hay dos excepciones a los reintentos de FR-018:
+  - Un error de configuración de la IA (falta la clave, clave rechazada, modelo inexistente)
+    MUST NOT reintentarse: la escena pasa a "error" de inmediato con ese motivo, y la
+    generación en curso se detiene, dejando en "pendiente" las escenas que esperaban su turno.
+    Es la única excepción al avance de la cola de FR-014a.
+  - Un error interno (cualquier falla que no sea de la IA, por ejemplo al guardar los bloques)
+    MUST NOT reintentarse: la escena pasa a "error" con el motivo "error interno" y la cola
+    sigue con la escena siguiente.
 - **FR-019**: El sistema MUST mantener por escena un estado: "pendiente", "generando",
   "generada" o "error"; MUST guardar los bloques de una escena en cuanto se generan, de forma
   que el fallo de otra escena no los borre; y MUST marcar "error" cuando se agotan los intentos
