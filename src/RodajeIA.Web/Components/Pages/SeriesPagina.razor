@@ -1,0 +1,97 @@
+@page "/"
+@inject SeriesService Series
+
+<PageTitle>Series</PageTitle>
+
+<h1>Series</h1>
+
+<form @onsubmit="CrearAsync">
+    <input @bind="_nueva" placeholder="Nombre de la serie" aria-label="Nombre de la serie" />
+    <button type="submit">Crear serie</button>
+</form>
+@if (_motivo is not null)
+{
+    <p class="motivo">@_motivo</p>
+}
+
+@if (_series.Count == 0)
+{
+    <p>Todavía no hay series.</p>
+}
+else
+{
+    <table class="tabla">
+        <tbody>
+            @foreach (var serie in _series)
+            {
+                <tr>
+                    @if (_editando == serie.Id)
+                    {
+                        <td><input @bind="_nombreEditado" aria-label="Nuevo nombre" /></td>
+                        <td>
+                            <button @onclick="() => RenombrarAsync(serie.Id)">Guardar</button>
+                            <button @onclick="() => _editando = null">Cancelar</button>
+                        </td>
+                    }
+                    else if (_eliminando == serie.Id)
+                    {
+                        <td>¿Eliminar «@serie.Nombre»? Se eliminan también sus personajes, episodios, escenas, bloques y variantes.</td>
+                        <td>
+                            <button @onclick="() => EliminarAsync(serie.Id)">Eliminar</button>
+                            <button @onclick="() => _eliminando = null">Cancelar</button>
+                        </td>
+                    }
+                    else
+                    {
+                        <td><a href="series/@serie.Id">@serie.Nombre</a></td>
+                        <td>
+                            <button @onclick="() => { _editando = serie.Id; _nombreEditado = serie.Nombre; }">Renombrar</button>
+                            <button @onclick="() => _eliminando = serie.Id">Eliminar</button>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IReadOnlyList<Serie> _series = [];
+    private string _nueva = "";
+    private string _nombreEditado = "";
+    private int? _editando;
+    private int? _eliminando;
+    private string? _motivo;
+
+    protected override async Task OnInitializedAsync() => _series = await Series.ListarAsync();
+
+    private async Task CrearAsync()
+    {
+        var resultado = await Series.CrearAsync(_nueva);
+        _motivo = resultado.Motivo;
+        if (resultado.Ok)
+        {
+            _nueva = "";
+            _series = await Series.ListarAsync();
+        }
+    }
+
+    private async Task RenombrarAsync(int id)
+    {
+        var resultado = await Series.RenombrarAsync(id, _nombreEditado);
+        _motivo = resultado.Motivo;
+        if (resultado.Ok)
+        {
+            _editando = null;
+            _series = await Series.ListarAsync();
+        }
+    }
+
+    private async Task EliminarAsync(int id)
+    {
+        var resultado = await Series.EliminarAsync(id);
+        _motivo = resultado.Motivo;
+        _eliminando = null;
+        _series = await Series.ListarAsync();
+    }
+}

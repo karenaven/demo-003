@@ -49,6 +49,9 @@ builder.Services.AddSingleton<ServicioGeneracion>();
 builder.Services.AddSingleton<IEstadoGeneracion>(sp => sp.GetRequiredService<ServicioGeneracion>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<ServicioGeneracion>());
 
+builder.Services.AddSingleton<SeriesService>();
+builder.Services.AddSingleton<HojasService>();
+builder.Services.AddSingleton<EpisodiosService>();
 builder.Services.AddSingleton<CargaGuionService>();
 
 // Prompt final (contracts/prompt.md).

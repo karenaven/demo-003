@@ -419,11 +419,11 @@ validaciones, la unicidad, las cascadas y los bloqueos durante una generación.
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T068 [P] [US4] Escribir `tests/RodajeIA.Tests/Servicios/SeriesServiceTests.cs`:
+- [X] T068 [P] [US4] Escribir `tests/RodajeIA.Tests/Servicios/SeriesServiceTests.cs`:
   - crear (`AC-01a`), listar (`AC-01b`) y renombrar (`AC-01c`);
   - eliminar en cascada hojas, episodios, escenas, clips, bloques y variantes (`AC-01d`);
   - eliminar una serie con una generación en curso queda rechazado con el motivo (`AC-S15`).
-- [ ] T069 [P] [US4] Escribir `tests/RodajeIA.Tests/Servicios/HojasServiceTests.cs`:
+- [X] T069 [P] [US4] Escribir `tests/RodajeIA.Tests/Servicios/HojasServiceTests.cs`:
   - crear con todos los campos (`AC-01e`), listar (`AC-01f`) y editar vestuario (`AC-01g`);
   - eliminar con variantes en una escena `Generada` (`AC-01h`, FR-003a);
   - peinado vacío al crear (`AC-01i`) y al editar (`AC-01k`);
@@ -431,7 +431,7 @@ validaciones, la unicidad, las cascadas y los bloqueos durante una generación.
   - "ANA" duplicado en la serie y "Ana" permitido en otra serie (`AC-S08`);
   - "Audio" reservado (`AC-S09`);
   - después de eliminar la hoja, el prompt la omite y el diálogo `ANA:` sigue literal; renombrar una hoja usada devuelve el aviso de FR-003b (`AC-S38`, partes de eliminación y renombrado).
-- [ ] T070 [P] [US4] Escribir `tests/RodajeIA.Tests/Servicios/EpisodiosServiceTests.cs`:
+- [X] T070 [P] [US4] Escribir `tests/RodajeIA.Tests/Servicios/EpisodiosServiceTests.cs`:
   - crear el episodio 1 "Piloto" (`AC-11a`), listar (`AC-11b`) y editar título (`AC-11c`);
   - eliminar en cascada (`AC-11d`);
   - ver escenas en orden con su estado (`AC-11e`);
@@ -440,18 +440,18 @@ validaciones, la unicidad, las cascadas y los bloqueos durante una generación.
 
 ### Implementation for User Story 4
 
-- [ ] T071 [P] [US4] Implementar `src/RodajeIA.Web/Servicios/SeriesService.cs` (FR-001, FR-004a): crear, listar, renombrar y eliminar. Al eliminar, consulta `ServicioGeneracion.EpisodioEnCurso` y rechaza con "Hay una generación en curso en esta serie".
-- [ ] T072 [P] [US4] Implementar `src/RodajeIA.Web/Servicios/HojasService.cs` (FR-002 a FR-003b):
+- [X] T071 [P] [US4] Implementar `src/RodajeIA.Web/Servicios/SeriesService.cs` (FR-001, FR-004a): crear, listar, renombrar y eliminar. Al eliminar, consulta `ServicioGeneracion.EpisodioEnCurso` y rechaza con "Hay una generación en curso en esta serie".
+- [X] T072 [P] [US4] Implementar `src/RodajeIA.Web/Servicios/HojasService.cs` (FR-002 a FR-003b):
   - valida los campos obligatorios, recortados y no vacíos;
   - valida `NombreClave` único en la serie y fuera de los nombres reservados de FR-002b;
   - al renombrar una hoja con `PersonajeEnEscena`, devuelve el aviso "Los guiones cargados siguen usando el nombre anterior; recargalos para que coincidan.";
   - elimina en cascada aunque haya una generación en curso.
-- [ ] T073 [P] [US4] Implementar `src/RodajeIA.Web/Servicios/EpisodiosService.cs` (FR-004, FR-004a, FR-005): crear con número único, listar en orden, editar solo el título, eliminar (rechazado si `EpisodioEnCurso` es ese episodio) y obtener el detalle con las escenas en orden.
-- [ ] T074 [US4] Crear `src/RodajeIA.Web/Components/Pages/SeriesPagina.razor` (ruta `/`): lista, alta, renombrado y eliminación con confirmación que menciona la cascada.
-- [ ] T075 [US4] Crear `src/RodajeIA.Web/Components/Pages/SeriePagina.razor` (ruta `/series/{serieId:int}`), con pestañas:
+- [X] T073 [P] [US4] Implementar `src/RodajeIA.Web/Servicios/EpisodiosService.cs` (FR-004, FR-004a, FR-005): crear con número único, listar en orden, editar solo el título, eliminar (rechazado si `EpisodioEnCurso` es ese episodio) y obtener el detalle con las escenas en orden.
+- [X] T074 [US4] Crear `src/RodajeIA.Web/Components/Pages/SeriesPagina.razor` (ruta `/`): lista, alta, renombrado y eliminación con confirmación que menciona la cascada.
+- [X] T075 [US4] Crear `src/RodajeIA.Web/Components/Pages/SeriePagina.razor` (ruta `/series/{serieId:int}`), con pestañas:
   - "Personajes": formulario de hoja con los mensajes de validación y el aviso de renombrado;
   - "Episodios": alta con número y título, edición del título, eliminación y enlace a `/episodios/{id}`.
-- [ ] T076 [US4] Registrar `SeriesService`, `HojasService`, `EpisodiosService` y `CargaGuionService` en `src/RodajeIA.Web/Program.cs`, y hacer que `EpisodioPagina.razor` cargue su detalle con `EpisodiosService`.
+- [X] T076 [US4] Registrar `SeriesService`, `HojasService`, `EpisodiosService` y `CargaGuionService` en `src/RodajeIA.Web/Program.cs`, y hacer que `EpisodioPagina.razor` cargue su detalle con `EpisodiosService`.
 
 **Checkpoint**: el recorrido completo de la demo (SC-008) se puede hacer desde la UI.
 
