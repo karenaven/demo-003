@@ -35,6 +35,18 @@ public sealed record HojaEfectiva(
             hoja.Rol);
     }
 
+    /// <summary>
+    /// Las hojas efectivas de los personajes presentes en la escena, en orden de primera aparición
+    /// (FR-025b). Requiere <c>Personajes</c> con su hoja y <c>Variantes</c> cargados.
+    /// </summary>
+    public static IReadOnlyList<HojaEfectiva> DeEscena(Escena escena) =>
+        escena.Personajes
+            .OrderBy(p => p.Orden)
+            .Select(p => Calcular(
+                p.Hoja ?? throw new InvalidOperationException("Falta cargar la hoja del personaje."),
+                escena.Variantes.SingleOrDefault(v => v.HojaId == p.HojaId)))
+            .ToList();
+
     public string Renderizar(MoldePrompt molde) =>
         MotorMolde.Renderizar(molde.PorPersonaje, new Dictionary<string, string?>
         {

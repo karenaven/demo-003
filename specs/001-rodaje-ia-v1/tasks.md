@@ -244,17 +244,17 @@ persistencia por escena y bloqueo global, sin red.
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T038 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/SchemaSalidaTests.cs` (FR-015):
+- [X] T038 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/SchemaSalidaTests.cs` (FR-015):
   - el schema generado desde `config/vocabulario.json` tiene un enum por categoría con los valores en el orden del archivo;
   - `required` incluye solo las categorías obligatorias, más `accion` y `dialogos`;
   - con un vocabulario de prueba distinto, el schema cambia sin tocar el código.
-- [ ] T039 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/ArmadorInstruccionTests.cs` según [contracts/gemini.md](contracts/gemini.md):
+- [X] T039 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/ArmadorInstruccionTests.cs` según [contracts/gemini.md](contracts/gemini.md):
   - el formato exacto de `{{escena}}` para la escena del Anexo A;
   - los ids `c1-d1` y `c1-d2`, y que no hay texto de otras escenas (`AC-S16`);
   - `(ninguno)` y `(ninguna)` cuando falta información;
   - `{{personajes}}` con la hoja efectiva renderizada por `porPersonaje`;
   - la variante "abrigo gris" presente y "chaqueta negra" ausente (`AC-09h`).
-- [ ] T040 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/ValidadorRespuestaTests.cs`, una regla por test y en el orden de prioridad del contrato:
+- [X] T040 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/ValidadorRespuestaTests.cs`, una regla por test y en el orden de prioridad del contrato:
   - respuesta válida con 3 bloques y valores del vocabulario (`AC-06a`);
   - RN-09: falta una línea (`AC-06b`), línea repetida (`AC-06c`), id de otro clip (`AC-06d`);
   - RN-08: 2 bloques (`AC-06e`), clips 1, 1, 3 (`AC-06g`);
@@ -265,7 +265,7 @@ persistencia por escena y bloqueo global, sin red.
   - comillas en la acción (`AC-S20`);
   - con varias fallas, el motivo informa solo la primera (`AC-S21`);
   - `SC-003`: ningún campo técnico fuera del vocabulario llega a guardarse.
-- [ ] T041 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/GeneradorEscenaTests.cs` con un `ClienteIaFalso` y `FakeTimeProvider`:
+- [X] T041 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/GeneradorEscenaTests.cs` con un `ClienteIaFalso` y `FakeTimeProvider`:
   - 3 errores dan exactamente 3 intentos y estado `Error` (`AC-10a`);
   - error y después éxito dan `Generada` (`AC-10c`);
   - timeout de 60 s en cada intento, esperas de 10 s y 30 s, notificaciones "intento i de 3" y motivo "La IA no respondió a tiempo" (`AC-S22`);
@@ -273,8 +273,8 @@ persistencia por escena y bloqueo global, sin red.
   - falla al guardar: ningún bloque y motivo "error interno" (`AC-S24`);
   - el motivo se borra al reintentar con éxito y nunca contiene la clave (`AC-S25`);
   - la hoja efectiva se calcula al iniciar cada llamada (FR-003a).
-- [ ] T042 [P] [US2] Crear `tests/RodajeIA.Tests/Fakes/ClienteIaFalso.cs`, que implementa `IClienteIa` con una cola de resultados programados (JSON, excepción HTTP con código, demora) y registra cada instrucción recibida.
-- [ ] T043 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/ServicioGeneracionTests.cs`:
+- [X] T042 [P] [US2] Crear `tests/RodajeIA.Tests/Fakes/ClienteIaFalso.cs`, que implementa `IClienteIa` con una cola de resultados programados (JSON, excepción HTTP con código, demora) y registra cada instrucción recibida.
+- [X] T043 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/ServicioGeneracionTests.cs`:
   - dos escenas pendientes terminan en `Generada` (`AC-06f`);
   - solo se generan las pendientes (`AC-06k`);
   - una falla en la escena 3 conserva los bloques de la 1 y la 2 (`AC-10b`, `SC-009`);
@@ -286,40 +286,40 @@ persistencia por escena y bloqueo global, sin red.
   - reintentar genera solo esa escena (`AC-S28`, primera parte);
   - un error interno en la escena 1 la deja en `Error` y la escena 2 se genera igual (FR-018a);
   - `EpisodioEnCurso` refleja las escenas en cola.
-- [ ] T044 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/RecuperacionArranqueTests.cs`:
+- [X] T044 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/RecuperacionArranqueTests.cs`:
   - `Generando` pasa a `Error` con el motivo "Generación interrumpida por un cierre de la aplicación" (`AC-10f`);
   - las escenas `Pendiente` siguen así y no se llama a la IA (`AC-S28`, segunda parte).
-- [ ] T045 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/RegistroIntentosTests.cs`:
+- [X] T045 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/RegistroIntentosTests.cs`:
   - un intento inválido escribe una línea JSONL con `escena`, `intento`, `duracionMs`, `resultado = "invalida"`, `motivo` y `respuestaCruda`;
   - un intento `ok` no incluye `respuestaCruda`;
   - el archivo nunca contiene el valor de `Gemini:ApiKey`.
 
   Cubre `AC-S27`.
-- [ ] T046 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/NotificadorGeneracionTests.cs`: los suscriptores reciben cada cambio de estado e intento y el cambio de "generación en curso"; desuscribirse deja de notificar (`AC-S26`, parte de servicio).
+- [X] T046 [P] [US2] Escribir `tests/RodajeIA.Tests/Generacion/NotificadorGeneracionTests.cs`: los suscriptores reciben cada cambio de estado e intento y el cambio de "generación en curso"; desuscribirse deja de notificar (`AC-S26`, parte de servicio).
 
 ### Implementation for User Story 2
 
-- [ ] T047 [P] [US2] Crear `src/RodajeIA.Web/Generacion/IClienteIa.cs`:
+- [X] T047 [P] [US2] Crear `src/RodajeIA.Web/Generacion/IClienteIa.cs`:
   - `Task<RespuestaIa> GenerarAsync(string instruccion, CancellationToken ct)`, donde `RespuestaIa(string Json)`;
   - `ErrorIa` (excepción con `CategoriaFalla`: `Timeout`, `ErrorIa`, `Configuracion`, `Interno`) y `CategoriaFalla.cs`, según la tabla de research R-06.
-- [ ] T048 [P] [US2] Implementar `src/RodajeIA.Web/Generacion/SchemaSalida.cs`, que construye una vez, desde `Vocabulario`, el schema de [contracts/gemini.md](contracts/gemini.md) como objeto serializable y como el tipo de schema del SDK `Google.GenAI`. Ningún valor del vocabulario aparece en el código (constitución II).
-- [ ] T049 [P] [US2] Implementar `src/RodajeIA.Web/Generacion/ArmadorInstruccion.cs`:
+- [X] T048 [P] [US2] Implementar `src/RodajeIA.Web/Generacion/SchemaSalida.cs`, que construye una vez, desde `Vocabulario`, el schema de [contracts/gemini.md](contracts/gemini.md) como objeto serializable y como el tipo de schema del SDK `Google.GenAI`. Ningún valor del vocabulario aparece en el código (constitución II).
+- [X] T049 [P] [US2] Implementar `src/RodajeIA.Web/Generacion/ArmadorInstruccion.cs`:
   - recibe la escena con clips, líneas, personajes presentes y variantes;
   - genera `{{escena}}` y `{{personajes}}` en el formato del contrato;
   - reemplaza los marcadores de `InstruccionGeneracion`.
-- [ ] T050 [P] [US2] Implementar `src/RodajeIA.Web/Generacion/ValidadorRespuesta.cs` sobre el JSON crudo con `System.Text.Json`:
+- [X] T050 [P] [US2] Implementar `src/RodajeIA.Web/Generacion/ValidadorRespuesta.cs` sobre el JSON crudo con `System.Text.Json`:
   - aplica las reglas 1 a 6 del contrato, en orden;
   - devuelve `Valida(bloques)` o `Invalida(motivo)`, donde `motivo` es el detalle, por ejemplo "falta el bloque del clip 3".
-- [ ] T051 [US2] Implementar `src/RodajeIA.Web/Generacion/ClienteGemini.cs` con `Google.GenAI`:
+- [X] T051 [US2] Implementar `src/RodajeIA.Web/Generacion/ClienteGemini.cs` con `Google.GenAI`:
   - `Gemini:Modelo` por defecto `gemini-3.1-flash-lite`; `Gemini:ApiKey` desde la configuración;
   - si falta la clave, lanzar `ErrorIa(Configuracion)` sin llamar a la red;
   - `ResponseMimeType = "application/json"` y el schema de `SchemaSalida`;
   - clasificar las fallas: 401, 403, 404 y 400 por clave dan `Configuracion`; 429, 5xx y errores de red dan `ErrorIa`.
 
   Verificar los nombres exactos de las propiedades del SDK al implementar (research R-05).
-- [ ] T052 [P] [US2] Implementar `src/RodajeIA.Web/Generacion/RegistroIntentos.cs`, que agrega líneas JSONL a `logs/generacion-AAAA-MM-DD.jsonl` (relativo al directorio de contenido) con el formato de [contracts/gemini.md](contracts/gemini.md), y además escribe un resumen con `ILogger` (FR-019c).
-- [ ] T053 [P] [US2] Implementar `src/RodajeIA.Web/Generacion/NotificadorGeneracion.cs` como singleton con los eventos `EstadoEscenaCambiado(escenaId, episodioId, estado, intento, motivo)` y `GeneracionEnCursoCambiada(bool, episodioId?)` (research R-08).
-- [ ] T054 [US2] Implementar `src/RodajeIA.Web/Generacion/GeneradorEscena.cs` (FR-016 a FR-019a):
+- [X] T052 [P] [US2] Implementar `src/RodajeIA.Web/Generacion/RegistroIntentos.cs`, que agrega líneas JSONL a `logs/generacion-AAAA-MM-DD.jsonl` (relativo al directorio de contenido) con el formato de [contracts/gemini.md](contracts/gemini.md), y además escribe un resumen con `ILogger` (FR-019c).
+- [X] T053 [P] [US2] Implementar `src/RodajeIA.Web/Generacion/NotificadorGeneracion.cs` como singleton con los eventos `EstadoEscenaCambiado(escenaId, episodioId, estado, intento, motivo)` y `GeneracionEnCursoCambiada(bool, episodioId?)` (research R-08).
+- [X] T054 [US2] Implementar `src/RodajeIA.Web/Generacion/GeneradorEscena.cs` (FR-016 a FR-019a):
   - marca la escena `Generando` y hace hasta 3 intentos;
   - en cada intento, recalcula la hoja efectiva y arma la instrucción;
   - usa un timeout de 60 s con `CancellationTokenSource(TimeSpan, TimeProvider)` y esperas de 10 s y 30 s con `Task.Delay(…, TimeProvider)`;
@@ -328,7 +328,7 @@ persistencia por escena y bloqueo global, sin red.
   - si la respuesta es válida, guarda en una transacción los bloques, las tomas, `TomaDialogo` y `Estado = Generada`, y borra `MotivoError`;
   - si falla, guarda `Estado = Error` con el motivo "{categoría}: {detalle}";
   - devuelve el resultado, para que la cola sepa si debe detenerse.
-- [ ] T055 [US2] Implementar `src/RodajeIA.Web/Generacion/ServicioGeneracion.cs` como `BackgroundService` singleton (FR-014, FR-014a, FR-018a, FR-020):
+- [X] T055 [US2] Implementar `src/RodajeIA.Web/Generacion/ServicioGeneracion.cs` como `BackgroundService` singleton (FR-014, FR-014a, FR-018a, FR-020):
   - un único hueco de trabajo;
   - `TryIniciarEpisodio(episodioId)`: encola las escenas `Pendiente` en orden de número;
   - `TryReintentar(escenaId)`: solo escenas en `Error`;
@@ -336,20 +336,20 @@ persistencia por escena y bloqueo global, sin red.
   - genera de a una con `GeneradorEscena`;
   - se detiene ante un error de configuración;
   - notifica el cambio de "en curso".
-- [ ] T056 [US2] Implementar `src/RodajeIA.Web/Datos/RecuperacionArranque.cs` (FR-021): pasa `Generando` a `Error` con el motivo de cierre. Invocarlo desde `src/RodajeIA.Web/Program.cs` antes de aceptar pedidos; la generación no se reanuda sola.
-- [ ] T057 [US2] Registrar en `src/RodajeIA.Web/Program.cs`:
+- [X] T056 [US2] Implementar `src/RodajeIA.Web/Datos/RecuperacionArranque.cs` (FR-021): pasa `Generando` a `Error` con el motivo de cierre. Invocarlo desde `src/RodajeIA.Web/Program.cs` antes de aceptar pedidos; la generación no se reanuda sola.
+- [X] T057 [US2] Registrar en `src/RodajeIA.Web/Program.cs`:
   - `TimeProvider.System`;
   - `IClienteIa` → `ClienteGemini`;
   - `SchemaSalida`, `ArmadorInstruccion`, `ValidadorRespuesta`, `RegistroIntentos`, `NotificadorGeneracion` y `GeneradorEscena`;
   - `ServicioGeneracion` como singleton y hosted service.
-- [ ] T058 [US2] Bloquear en `src/RodajeIA.Web/Servicios/CargaGuionService.cs` la carga de un guion en un episodio con generación en curso, con el motivo correspondiente (FR-004a), y agregar el test en `tests/RodajeIA.Tests/Servicios/CargaGuionServiceTests.cs` (`AC-S15`, parte de recarga).
-- [ ] T059 [US2] Ampliar `src/RodajeIA.Web/Components/Pages/EpisodioPagina.razor` (FR-019b):
+- [X] T058 [US2] Bloquear en `src/RodajeIA.Web/Servicios/CargaGuionService.cs` la carga de un guion en un episodio con generación en curso, con el motivo correspondiente (FR-004a), y agregar el test en `tests/RodajeIA.Tests/Servicios/CargaGuionServiceTests.cs` (`AC-S15`, parte de recarga).
+- [X] T059 [US2] Ampliar `src/RodajeIA.Web/Components/Pages/EpisodioPagina.razor` (FR-019b):
   - botón "Generar" y, por escena en `Error`, el motivo y "Reintentar";
   - mientras hay una generación en curso, los botones deshabilitados con "Hay una generación en curso" y la carga de guion deshabilitada;
   - estado "Generando · intento {i} de 3" en vivo;
   - suscripción a `NotificadorGeneracion` con `InvokeAsync(StateHasChanged)` e `IDisposable` para desuscribirse;
   - enlace a `/escenas/{id}` cuando la escena está `Generada`.
-- [ ] T060 [US2] Escribir `tests/RodajeIA.Tests/Gemini/SpikeGeminiTests.cs` con `[Fact(Explicit = true)]`, `[Trait("Categoria", "Gemini")]` y omisión si falta `Gemini:ApiKey`:
+- [X] T060 [US2] Escribir `tests/RodajeIA.Tests/Gemini/SpikeGeminiTests.cs` con `[Fact(Explicit = true)]`, `[Trait("Categoria", "Gemini")]` y omisión si falta `Gemini:ApiKey`:
   - SC-006: 10 generaciones de una escena de 20 clips (generada con `Ejemplos`); informa el p95 de la llamada exitosa y lo compara con 30 s;
   - SC-002: 10 generaciones de la escena del Anexo A y 10 de la de 20 clips; el 100% termina `Generada` dentro de los 3 intentos.
 
