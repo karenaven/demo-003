@@ -537,14 +537,14 @@ comprobar la instrucción y los prompts, y las restricciones según el estado.
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T085 [P] Escribir `tests/RodajeIA.Tests/Rendimiento/RendimientoTests.cs` (`Explicit = true`, `[Trait("Categoria", "Rendimiento")]`), según las condiciones de medición de la spec:
+- [X] T085 [P] Escribir `tests/RodajeIA.Tests/Rendimiento/RendimientoTests.cs` (`Explicit = true`, `[Trait("Categoria", "Rendimiento")]`), según las condiciones de medición de la spec:
   - SC-004: p95 de 100 parseos y detecciones de un guion de 10 × 20 clips, sin la primera ejecución, menor que 1 s;
   - SC-005: p95 de 100 armados de prompt de una escena de 20 clips menor que 1 s.
-- [ ] T086 [P] Escribir `tests/RodajeIA.Tests/TrazabilidadTests.cs`, que recorre por reflexión los `[Trait("AC", …)]` de todos los tests y falla si falta alguno de los 99 AC del PRD (`AC-01a` a `AC-11g`) o de `AC-S01` a `AC-S39`. La lista esperada vive en el mismo archivo.
+- [X] T086 [P] Escribir `tests/RodajeIA.Tests/TrazabilidadTests.cs`, que recorre por reflexión los `[Trait("AC", …)]` de todos los tests y falla si falta alguno de los 99 AC del PRD (`AC-01a` a `AC-11g`) o de `AC-S01` a `AC-S39`. La lista esperada vive en el mismo archivo.
   - La lista marca `AC-S26` como cubierto por `NotificadorGeneracionTests`; la parte visual se valida en el paso 6 del quickstart.
-- [ ] T087 Actualizar [quickstart.md](quickstart.md) con los comandos verificados para correr los tests `Explicit` de las categorías `Rendimiento` y `Gemini` con xUnit v3.
+- [X] T087 Actualizar [quickstart.md](quickstart.md) con los comandos verificados para correr los tests `Explicit` de las categorías `Rendimiento` y `Gemini` con xUnit v3.
 - [ ] T088 Recorrer [quickstart.md](quickstart.md) completo a mano (pasos 1 a 9 y la falla de configuración) y anotar en el mismo archivo la fecha y el equipo; corregir lo que no coincida.
-- [ ] T089 Correr `dotnet format --verify-no-changes` y `dotnet test` en la raíz, y corregir lo que falle (AGENTS.md).
+- [X] T089 Correr `dotnet format --verify-no-changes` y `dotnet test` en la raíz, y corregir lo que falle (AGENTS.md).
 
 ---
 

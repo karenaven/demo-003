@@ -33,17 +33,24 @@ dotnet test
 Resultado esperado: el formato no tiene cambios pendientes y todos los tests pasan. Hay al menos
 un test por cada AC del PRD y por cada AC-S01 a AC-S39. La suite no llama a Gemini.
 
-Mediciones (se corren a mano):
+Mediciones (se corren a mano). Los tests de rendimiento y de Gemini son `Explicit` (xUnit v3):
+`dotnet test` los muestra como omitidos y solo corren si se piden con `--explicit only`.
 
 ```bash
 # SC-004 y SC-005: p95 de 100 ejecuciones, sin la primera
-dotnet test --filter "Categoria=Rendimiento"
-# SC-006 y SC-002: requieren API key; consumen cuota de Gemini
-dotnet test --filter "Categoria=Gemini"
+dotnet test --filter-trait "Categoria=Rendimiento" --explicit only --output Detailed
+# SC-006 y SC-002: requieren API key; consumen cuota de Gemini (sin clave se omiten)
+dotnet test --filter-trait "Categoria=Gemini" --explicit only --output Detailed
 ```
 
 Anotá junto al resultado el equipo (CPU, RAM y sistema operativo) y el modelo usado
 (spec, Condiciones de medición).
+
+| Fecha | Criterio | Resultado | Equipo |
+| --- | --- | --- | --- |
+| 2026-10-17 | SC-004 (guion 10 × 20 clips) | p95 = 8,55 ms | WSL2 (Linux 6.18), 8 núcleos |
+| 2026-10-17 | SC-005 (prompt de 20 clips) | p95 = 13,27 ms | WSL2 (Linux 6.18), 8 núcleos |
+| — | SC-006 y SC-002 | Pendiente: no hay `Gemini:ApiKey` configurada | — |
 
 ## Recorrido manual (criterio de demo, SC-008: < 2 minutos)
 
