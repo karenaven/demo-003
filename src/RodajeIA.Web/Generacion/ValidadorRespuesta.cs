@@ -1,6 +1,10 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using RodajeIA.Web.Configuracion;
+using RodajeIA.Web.Personajes;
+using RodajeIA.Web.Prompt;
 
 namespace RodajeIA.Web.Generacion;
 
@@ -28,12 +32,18 @@ public abstract record ResultadoValidacion
 }
 
 /// <summary>
-/// Valida el JSON crudo de la IA con las reglas 1 a 6 de contracts/gemini.md, en ese orden
-/// (FR-017, FR-017a, FR-017b, RN-08 a RN-10). Informa solo la primera regla que falla.
+/// Valida el JSON crudo de la IA con las reglas 1 a 7 de contracts/gemini.md, en ese orden
+/// (FR-017, FR-017a, FR-017b, RN-03, RN-08 a RN-10). Informa solo la primera regla que falla.
 /// </summary>
-public sealed class ValidadorRespuesta(Vocabulario vocabulario)
+public sealed partial class ValidadorRespuesta(Vocabulario vocabulario, MoldePrompt molde)
 {
     private const string SinFormato = "la respuesta no tiene el formato pedido";
+
+    /// <summary>Un fragmento de un campo de la hoja con menos palabras puede aparecer en una acción legítima.</summary>
+    private const int MinimoPalabrasCopia = 3;
+
+    /// <summary>Etiquetas de campo de la plantilla de personaje del molde ("Peinado:", "Rol:", …).</summary>
+    private readonly IReadOnlyList<Regex> _etiquetas = Etiquetas(molde.PorPersonaje);
 
     private static readonly IReadOnlyDictionary<string, string> _nombres = new Dictionary<string, string>
     {
@@ -48,7 +58,8 @@ public sealed class ValidadorRespuesta(Vocabulario vocabulario)
 
     private sealed record BloqueCrudo(int Clip, IReadOnlyList<TomaCruda> Tomas);
 
-    public ResultadoValidacion Validar(string json, IReadOnlyList<ClipEsperado> clips)
+    /// <param name="hojas">Las hojas efectivas de los personajes presentes en la escena (regla 7).</param>
+    public ResultadoValidacion Validar(string json, IReadOnlyList<ClipEsperado> clips, IReadOnlyList<HojaEfectiva> hojas)
     {
         // Regla 1: formato.
         if (LeerEstructura(json) is not { } bloques)
@@ -170,6 +181,18 @@ public sealed class ValidadorRespuesta(Vocabulario vocabulario)
             }
         }
 
+        // Regla 7 (RN-03): la acción no copia la hoja de un personaje; la hoja se inserta por plantilla.
+        foreach (var bloque in ordenados)
+        {
+            foreach (var toma in bloque.Tomas)
+            {
+                if (CopiaDeHoja(toma.Accion, hojas) is { } copia)
+                {
+                    return Falla($"la acción de la toma {toma.Orden} del clip {bloque.Clip} copia {copia}");
+                }
+            }
+        }
+
         return new ResultadoValidacion.Valida(ordenados.Select(b => new BloqueValidado(
             b.Clip,
             b.Tomas.Select(t => new TomaValidada(
@@ -185,6 +208,66 @@ public sealed class ValidadorRespuesta(Vocabulario vocabulario)
     private static ResultadoValidacion.Invalida Falla(string motivo) => new(motivo);
 
     private static string? NullSiVacio(string? valor) => string.IsNullOrEmpty(valor) ? null : valor;
+
+    /// <summary>
+    /// Qué parte de una hoja aparece en la acción: una etiqueta de campo del molde, o una oración de
+    /// un campo (sin el nombre), cortado en puntos, comas y puntos y coma, con al menos <see cref="MinimoPalabrasCopia"/> palabras. Nula si ninguna.
+    /// </summary>
+    private string? CopiaDeHoja(string accion, IReadOnlyList<HojaEfectiva> hojas)
+    {
+        var texto = accion.Normalize(NormalizationForm.FormC);
+        if (_etiquetas.FirstOrDefault(e => e.IsMatch(texto)) is { } etiqueta)
+        {
+            return $"la etiqueta «{etiqueta.Match(texto).Value}» de la hoja";
+        }
+
+        foreach (var hoja in hojas)
+        {
+            foreach (var (campo, valor) in Campos(hoja))
+            {
+                var copiado = Fragmentos().Split(valor.Normalize(NormalizationForm.FormC))
+                    .Select(f => f.Trim())
+                    .Where(f => f.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= MinimoPalabrasCopia)
+                    .Any(f => texto.Contains(f, StringComparison.OrdinalIgnoreCase));
+                if (copiado)
+                {
+                    return $"{campo} de la hoja de {hoja.Nombre}";
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<(string Campo, string Valor)> Campos(HojaEfectiva hoja)
+    {
+        yield return ("la edad", hoja.Edad);
+        yield return ("la descripción física", hoja.DescripcionFisica);
+        yield return ("el peinado", hoja.Peinado);
+        yield return ("el vestuario", hoja.Vestuario);
+        if (hoja.HeridasMarcas is { } heridas)
+        {
+            yield return ("las heridas/marcas", heridas);
+        }
+
+        yield return ("la personalidad", hoja.Personalidad);
+        yield return ("el rol", hoja.Rol);
+    }
+
+    private static List<Regex> Etiquetas(PlantillaMolde porPersonaje) =>
+        porPersonaje.Piezas
+            .SelectMany(p => p is PlantillaMolde.Opcional o ? o.Piezas : [p])
+            .OfType<PlantillaMolde.Texto>()
+            .SelectMany(t => Etiqueta().Matches(t.Valor).Select(m => m.Groups[1].Value))
+            .Distinct(StringComparer.Ordinal)
+            .Select(e => new Regex($@"(?<![\p{{L}}\p{{N}}]){Regex.Escape(e)}\s*:", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+            .ToList();
+
+    [GeneratedRegex(@"([\p{L}/]+):")]
+    private static partial Regex Etiqueta();
+
+    [GeneratedRegex(@"[.,;!?…]")]
+    private static partial Regex Fragmentos();
 
     /// <summary>Regla 1: tipos correctos, sin campos desconocidos y con los requeridos presentes.</summary>
     private List<BloqueCrudo>? LeerEstructura(string json)

@@ -31,7 +31,7 @@ dotnet test
 ```
 
 Resultado esperado: el formato no tiene cambios pendientes y todos los tests pasan. Hay al menos
-un test por cada AC del PRD y por cada AC-S01 a AC-S39. La suite no llama a Gemini.
+un test por cada AC del PRD y por cada AC-S01 a AC-S40. La suite no llama a Gemini.
 
 Mediciones (se corren a mano). Los tests de rendimiento y de Gemini son `Explicit` (xUnit v3):
 `dotnet test` los muestra como omitidos y solo corren si se piden con `--explicit only`.

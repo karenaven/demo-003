@@ -1,12 +1,18 @@
 using System.Text.Json.Nodes;
+using RodajeIA.Tests.Fakes;
 using RodajeIA.Web.Configuracion;
 using RodajeIA.Web.Generacion;
+using RodajeIA.Web.Personajes;
 
 namespace RodajeIA.Tests.Generacion;
 
 public class ValidadorRespuestaTests
 {
-    private static readonly ValidadorRespuesta _validador = new(CargadorConfiguracion.Cargar(CargadorConfiguracion.DirectorioPorDefecto).Vocabulario);
+    private static readonly ConfiguracionRodaje _config = CargadorConfiguracion.Cargar(CargadorConfiguracion.DirectorioPorDefecto);
+
+    private static readonly ValidadorRespuesta _validador = new(_config.Vocabulario, _config.Molde);
+
+    private static readonly HojaEfectiva _ana = HojaEfectiva.Calcular(Ejemplos.HojaAna(), null);
 
     /// <summary>Escena de 3 clips: el 1 con dos líneas, el 2 con una, el 3 sin diálogo.</summary>
     private static readonly IReadOnlyList<ClipEsperado> _tresClips =
@@ -41,14 +47,23 @@ public class ValidadorRespuestaTests
         Bloque(3, Toma()),
     ];
 
-    private static string Motivo(string json) =>
-        Assert.IsType<ResultadoValidacion.Invalida>(_validador.Validar(json, _tresClips)).Motivo;
+    private static string Motivo(string json, params HojaEfectiva[] hojas) =>
+        Assert.IsType<ResultadoValidacion.Invalida>(_validador.Validar(json, _tresClips, hojas)).Motivo;
+
+    private static string ConAccion(string accion)
+    {
+        var bloques = BloquesValidos();
+        var toma = Toma("c2-d1");
+        toma["accion"] = accion;
+        bloques[1] = Bloque(2, toma);
+        return Respuesta(bloques);
+    }
 
     [Fact]
     [Trait("AC", "AC-06a")]
     public void Una_respuesta_valida_trae_un_bloque_por_clip_con_valores_del_vocabulario()
     {
-        var resultado = Assert.IsType<ResultadoValidacion.Valida>(_validador.Validar(Respuesta(BloquesValidos()), _tresClips));
+        var resultado = Assert.IsType<ResultadoValidacion.Valida>(_validador.Validar(Respuesta(BloquesValidos()), _tresClips, []));
 
         Assert.Equal([1, 2, 3], resultado.Bloques.Select(b => b.Clip));
         var toma = resultado.Bloques[0].Tomas[0];
@@ -191,7 +206,7 @@ public class ValidadorRespuestaTests
         var bloques = BloquesValidos();
         bloques[0] = Bloque(1, Toma("c1-d2", "c1-d1"));
 
-        Assert.IsType<ResultadoValidacion.Valida>(_validador.Validar(Respuesta(bloques), _tresClips));
+        Assert.IsType<ResultadoValidacion.Valida>(_validador.Validar(Respuesta(bloques), _tresClips, []));
     }
 
     [Fact]
@@ -204,7 +219,7 @@ public class ValidadorRespuestaTests
         toma["movimiento"] = null;
         bloques[2] = Bloque(3, toma);
 
-        var valida = Assert.IsType<ResultadoValidacion.Valida>(_validador.Validar(Respuesta(bloques), _tresClips));
+        var valida = Assert.IsType<ResultadoValidacion.Valida>(_validador.Validar(Respuesta(bloques), _tresClips, []));
 
         Assert.Null(valida.Bloques[2].Tomas[0].Angulo);
         Assert.Null(valida.Bloques[2].Tomas[0].Movimiento);
@@ -268,8 +283,43 @@ public class ValidadorRespuestaTests
         var bloques = BloquesValidos();
         bloques[2]["tomas"]![0]!["accion"] = "  Ana mira.\n";
 
-        var valida = Assert.IsType<ResultadoValidacion.Valida>(_validador.Validar(Respuesta(bloques), _tresClips));
+        var valida = Assert.IsType<ResultadoValidacion.Valida>(_validador.Validar(Respuesta(bloques), _tresClips, []));
 
         Assert.Equal("Ana mira.", valida.Bloques[2].Tomas[0].Accion);
+    }
+
+    [Fact]
+    [Trait("AC", "AC-S40")]
+    public void Una_accion_que_copia_la_hoja_renderizada()
+    {
+        var accion = _ana.Renderizar(_config.Molde) + " espera bajo el toldo.";
+
+        Assert.Equal("la acción de la toma 1 del clip 2 copia la etiqueta «Peinado:» de la hoja", Motivo(ConAccion(accion), _ana));
+    }
+
+    [Theory]
+    [Trait("AC", "AC-S40")]
+    [InlineData("Ana, mujer de piel morena, espera bajo el toldo.", "la descripción física")]
+    [InlineData("Ana, irónica y observadora, espera bajo el toldo.", "la personalidad")]
+    [InlineData("Ana se acomoda el pelo negro largo.", "el peinado")]
+    public void Una_accion_que_copia_un_campo_de_la_hoja(string accion, string campo)
+    {
+        Assert.Equal($"la acción de la toma 1 del clip 2 copia {campo} de la hoja de Ana", Motivo(ConAccion(accion), _ana));
+    }
+
+    [Fact]
+    [Trait("AC", "AC-S40")]
+    public void Una_accion_con_una_etiqueta_de_campo_del_molde()
+    {
+        Assert.Equal("la acción de la toma 1 del clip 2 copia la etiqueta «Rol:» de la hoja", Motivo(ConAccion("Rol: Protagonista. Ana espera."), _ana));
+    }
+
+    [Theory]
+    [InlineData("Ana se ajusta la chaqueta negra y espera.")]
+    [InlineData("Ana revisa el control: nada cambia.")]
+    [InlineData("Ana espera, irónica, bajo el toldo.")]
+    public void Una_accion_que_menciona_rasgos_sueltos_es_valida(string accion)
+    {
+        Assert.IsType<ResultadoValidacion.Valida>(_validador.Validar(ConAccion(accion), _tresClips, [_ana]));
     }
 }

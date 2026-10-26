@@ -112,6 +112,7 @@ Se valida el JSON crudo. La primera regla que falla, en este orden, da el motivo
 | 4 | RN-09: cada línea del clip referenciada exactamente una vez; sin ids inexistentes ni de otro clip | "falta el diálogo c2-d1" · "el diálogo c1-d1 se usa dos veces" · "el id c3-d1 no es del clip 2" |
 | 5 | Orden: recorriendo las tomas del bloque, el orden de las líneas no retrocede | "diálogos fuera de orden en el clip 2" |
 | 6 | La acción no contiene `"`, `“` ni `”` | "la acción de la toma 1 del clip 4 tiene comillas" |
+| 7 | RN-03: la acción no copia la hoja de un personaje presente: ni una etiqueta de campo de `porPersonaje` del molde (`Peinado:`, `Rol:`, …) ni un fragmento de un campo de la hoja efectiva (sin el nombre; cortado en `.` `,` `;` `!` `?` `…`) con 3 o más palabras, sin distinguir mayúsculas | "la acción de la toma 1 del clip 2 copia la etiqueta «Rol:» de la hoja" · "la acción de la toma 1 del clip 2 copia la descripción física de la hoja de Ana" |
 
 Una respuesta válida se convierte en `Bloque` y `Toma` (con `TomaDialogo`) y se guarda junto con
 el paso a "generada", en una transacción (FR-019).

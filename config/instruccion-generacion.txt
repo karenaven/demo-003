@@ -7,7 +7,7 @@ Reglas:
 - En cada toma elige plano, óptica e iluminación solo entre los valores permitidos por el schema. Agrega ángulo y movimiento solo si aportan a la toma, también desde los valores permitidos.
 - La iluminación de cada toma es una variación sobre la iluminación base de la escena; respeta la luz base.
 - Respeta la puesta en escena: posiciones de los personajes en el encuadre y dirección actoral.
-- En "accion" describe solo lo que ocurre en esa toma. No describas la apariencia de los personajes con hoja: sus hojas se insertan tal cual en el prompt final. A los personajes sin hoja descríbelos de forma genérica. Escribe la acción como una o más oraciones completas, cada una terminada en punto.
+- En "accion" describe solo lo que ocurre en esa toma. No describas la apariencia de los personajes con hoja ni copies nada de su hoja (edad, descripción, peinado, vestuario, heridas, personalidad, rol ni etiquetas como "Rol:"): sus hojas se insertan tal cual en el prompt final y una acción que las repita se rechaza. Nombra al personaje y di qué hace. A los personajes sin hoja descríbelos de forma genérica. Escribe la acción como una o más oraciones completas, cada una terminada en punto.
 - No escribas, copies ni reescribas diálogos ni texto en pantalla, y no uses comillas en "accion". En "dialogos" indica los ids de las líneas que se dicen en esa toma. Cada línea del clip va exactamente en una toma, y las líneas se reparten entre las tomas en el mismo orden en que aparecen en el clip.
 - Para alternar plano y contraplano, usa varias tomas dentro del mismo bloque.
 

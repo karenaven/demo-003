@@ -20,7 +20,7 @@ public sealed class EntornoGeneracion : IDisposable
             Ia,
             new ArmadorInstruccion(_config.Instruccion, _config.Molde),
             new SchemaSalida(_config.Vocabulario),
-            new ValidadorRespuesta(_config.Vocabulario),
+            new ValidadorRespuesta(_config.Vocabulario, _config.Molde),
             Registro,
             Notificador,
             Reloj);

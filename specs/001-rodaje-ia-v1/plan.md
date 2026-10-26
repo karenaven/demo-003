@@ -51,7 +51,7 @@ prompt (SC-005); p95 < 30 s para generar una escena de 20 clips (SC-006, validad
 - Suite por defecto sin red.
 
 **Scale/Scope**: un usuario; hasta 10 escenas × 20 clips por episodio; 4 páginas
-([contracts/ui.md](contracts/ui.md)); 99 AC del PRD más AC-S01 a AC-S39, cada uno con al menos un
+([contracts/ui.md](contracts/ui.md)); 99 AC del PRD más AC-S01 a AC-S40, cada uno con al menos un
 test
 
 No quedan NEEDS CLARIFICATION: todas las incógnitas se resolvieron en

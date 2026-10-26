@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using RodajeIA.Web.Datos;
 using RodajeIA.Web.Datos.Entidades;
+using RodajeIA.Web.Personajes;
 
 namespace RodajeIA.Web.Generacion;
 
@@ -53,7 +54,7 @@ public sealed class GeneradorEscena(
                 var clips = ClipsEsperados(escena);
                 json = await LlamarAsync(instruccion, schema.Para(clips), ct);
 
-                var validacion = validador.Validar(json, clips);
+                var validacion = validador.Validar(json, clips, HojaEfectiva.DeEscena(escena));
                 if (validacion is ResultadoValidacion.Invalida invalida)
                 {
                     (falla, detalle) = (CategoriaFalla.RespuestaInvalida, invalida.Motivo);

@@ -104,7 +104,7 @@ public sealed class SpikeGeminiTests(ITestOutputHelper salida) : IDisposable
             cliente,
             new ArmadorInstruccion(_config.Instruccion, _config.Molde),
             new SchemaSalida(_config.Vocabulario),
-            new ValidadorRespuesta(_config.Vocabulario),
+            new ValidadorRespuesta(_config.Vocabulario, _config.Molde),
             new RegistroIntentos(_logs, TimeProvider.System, NullLogger<RegistroIntentos>.Instance),
             new NotificadorGeneracion(),
             TimeProvider.System);

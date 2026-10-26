@@ -491,6 +491,11 @@ PRD (constitución, principio V).
   crea para Ana con un vestuario igual al de su hoja, **Then** se rechaza; **When** se crea con
   heridas/marcas vacío sobre una base que tiene heridas, **Then** se guarda y el reintento usa la
   hoja efectiva.
+- **AC-S40** (FR-017a, RN-03): **Given** la hoja de Ana en la escena, **When** la acción de una
+  toma trae la hoja renderizada ("Ana, 32 años. Mujer de piel morena… Rol: Protagonista espera
+  bajo el toldo"), un fragmento de 3 o más palabras de un campo ("mujer de piel morena") o una
+  etiqueta de campo del molde ("Rol:"), **Then** la respuesta es fallida y se reintenta; **When**
+  menciona un rasgo suelto ("se ajusta la chaqueta negra"), **Then** es válida.
 
 ---
 
@@ -707,9 +712,15 @@ PRD (constitución, principio V).
     tiene cada bloque (Anexo D).
   - Una acción que contiene comillas (`"`, `“` o `”`) hace fallida la respuesta: el diálogo y
     el texto en pantalla solo los inserta el sistema (RN-04).
+  - Una acción que copia la hoja de un personaje presente hace fallida la respuesta: la hoja la
+    inserta el sistema (RN-03). Cuenta como copia una etiqueta de campo de la plantilla de
+    personaje del molde (por ejemplo `Rol:`) o un fragmento de un campo de la hoja efectiva
+    (todos menos el nombre; cortado en puntos, comas y puntos y coma) con 3 o más palabras,
+    sin distinguir mayúsculas. La instrucción sola no alcanzó: en la demo la acción repetía la
+    hoja completa.
 - **FR-017b**: Si una respuesta incumple varias reglas, el motivo (FR-019a) MUST informar solo
   la primera según este orden: estructura o vocabulario (FR-017), RN-08, RN-10, RN-09, orden de
-  los diálogos y comillas en la acción (FR-017a).
+  los diálogos, comillas en la acción y copia de la hoja en la acción (FR-017a).
 - **FR-018**: Ante error, falta de respuesta en 60 s o respuesta inválida, el sistema MUST
   reintentar hasta 2 veces (3 intentos en total), esperando 10 s antes del primer reintento y
   30 s antes del segundo (RNF-06, RNF-07). El límite de 60 s aplica a cada llamada; las esperas
