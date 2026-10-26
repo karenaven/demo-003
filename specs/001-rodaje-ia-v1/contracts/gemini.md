@@ -113,6 +113,7 @@ Se valida el JSON crudo. La primera regla que falla, en este orden, da el motivo
 | 5 | Orden: recorriendo las tomas del bloque, el orden de las líneas no retrocede | "diálogos fuera de orden en el clip 2" |
 | 6 | La acción no contiene `"`, `“` ni `”` | "la acción de la toma 1 del clip 4 tiene comillas" |
 | 7 | RN-03: la acción no copia la hoja de un personaje presente: ni una etiqueta de campo de `porPersonaje` del molde (`Peinado:`, `Rol:`, …) ni un fragmento de un campo de la hoja efectiva (sin el nombre; cortado en `.` `,` `;` `!` `?` `…`) con 3 o más palabras, sin distinguir mayúsculas | "la acción de la toma 1 del clip 2 copia la etiqueta «Rol:» de la hoja" · "la acción de la toma 1 del clip 2 copia la descripción física de la hoja de Ana" |
+| 8 | RF-05a: cada nombre de hoja en la acción, como palabra completa, está escrito igual que en la hoja; se buscan los nombres ignorando solo las tildes (no las mayúsculas) | "la acción de la toma 1 del clip 2 escribe «Jose Daniel» en lugar de «José Daniel»" |
 
 Una respuesta válida se convierte en `Bloque` y `Toma` (con `TomaDialogo`) y se guarda junto con
 el paso a "generada", en una transacción (FR-019).

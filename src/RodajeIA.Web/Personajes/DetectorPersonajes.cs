@@ -108,7 +108,8 @@ public static class DetectorPersonajes
         }
     }
 
-    private static bool EsParteDePalabra(char c) =>
+    /// <summary>Si el carácter forma parte de una palabra (FR-011b): letra, dígito, guion, apóstrofo o marca.</summary>
+    public static bool EsParteDePalabra(char c) =>
         char.IsLetterOrDigit(c)
         || c is '-' or '\'' or '’'
         || CharUnicodeInfo.GetUnicodeCategory(c) is UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark;

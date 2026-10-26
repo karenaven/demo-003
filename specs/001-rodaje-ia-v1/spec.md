@@ -496,6 +496,10 @@ PRD (constitución, principio V).
   bajo el toldo"), un fragmento de 3 o más palabras de un campo ("mujer de piel morena") o una
   etiqueta de campo del molde ("Rol:"), **Then** la respuesta es fallida y se reintenta; **When**
   menciona un rasgo suelto ("se ajusta la chaqueta negra"), **Then** es válida.
+- **AC-S41** (FR-017a, RF-05a): **Given** las hojas de Ana y José Daniel en la escena, **When** la
+  acción dice "Jose Daniel sonríe pícaramente", **Then** la respuesta es fallida con el motivo
+  "escribe «Jose Daniel» en lugar de «José Daniel»" y se reintenta; **When** dice "Josefina mira
+  a José Daniel", o una hoja "Luz" y la acción dice "enciende la luz", **Then** es válida.
 
 ---
 
@@ -718,9 +722,15 @@ PRD (constitución, principio V).
     (todos menos el nombre; cortado en puntos, comas y puntos y coma) con 3 o más palabras,
     sin distinguir mayúsculas. La instrucción sola no alcanzó: en la demo la acción repetía la
     hoja completa.
+  - Un nombre de hoja escrito en la acción sin sus tildes o con otras tildes (por ejemplo
+    "Jose Daniel" por "José Daniel") hace fallida la respuesta: el nombre va tal cual la hoja
+    (RF-05a). Se compara por palabra completa (FR-011b), ignorando solo las tildes; las
+    mayúsculas sí cuentan, así que "la luz" no se confunde con la hoja "Luz". El resto de la
+    ortografía de la acción no se valida; la instrucción pide tildes y ñ.
 - **FR-017b**: Si una respuesta incumple varias reglas, el motivo (FR-019a) MUST informar solo
   la primera según este orden: estructura o vocabulario (FR-017), RN-08, RN-10, RN-09, orden de
-  los diálogos, comillas en la acción y copia de la hoja en la acción (FR-017a).
+  los diálogos, comillas en la acción, copia de la hoja en la acción y nombres mal escritos en
+  la acción (FR-017a).
 - **FR-018**: Ante error, falta de respuesta en 60 s o respuesta inválida, el sistema MUST
   reintentar hasta 2 veces (3 intentos en total), esperando 10 s antes del primer reintento y
   30 s antes del segundo (RNF-06, RNF-07). El límite de 60 s aplica a cada llamada; las esperas

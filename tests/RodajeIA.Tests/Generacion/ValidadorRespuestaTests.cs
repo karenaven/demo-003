@@ -322,4 +322,31 @@ public class ValidadorRespuestaTests
     {
         Assert.IsType<ResultadoValidacion.Valida>(_validador.Validar(ConAccion(accion), _tresClips, [_ana]));
     }
+
+    private static readonly HojaEfectiva _joseDaniel = HojaEfectiva.Calcular(Ejemplos.HojaJoseDaniel(), null);
+
+    private static readonly HojaEfectiva _luz = HojaEfectiva.Calcular(Ejemplos.Hoja("Luz"), null);
+
+    [Theory]
+    [Trait("AC", "AC-S41")]
+    [InlineData("Jose Daniel sonríe pícaramente.", "Jose Daniel", "José Daniel")]
+    [InlineData("Ana mira a Jose Daniel.", "Jose Daniel", "José Daniel")]
+    [InlineData("José Daniel mira a Ána.", "Ána", "Ana")]
+    public void Una_accion_con_un_nombre_sin_sus_tildes(string accion, string escrito, string nombre)
+    {
+        Assert.Equal(
+            $"la acción de la toma 1 del clip 2 escribe «{escrito}» en lugar de «{nombre}»",
+            Motivo(ConAccion(accion), _ana, _joseDaniel));
+    }
+
+    [Theory]
+    [Trait("AC", "AC-S41")]
+    [InlineData("José Daniel sonríe pícaramente.")]
+    [InlineData("Josefina mira a José Daniel.")]
+    [InlineData("Luz enciende la luz de la mesa.")]
+    [InlineData("Ana sonríe 🙂 a José Daniel.")]
+    public void Una_accion_con_los_nombres_como_en_la_hoja_es_valida(string accion)
+    {
+        Assert.IsType<ResultadoValidacion.Valida>(_validador.Validar(ConAccion(accion), _tresClips, [_ana, _joseDaniel, _luz]));
+    }
 }

@@ -30,7 +30,7 @@ public class TrazabilidadTests
         "AC-S11", "AC-S12", "AC-S13", "AC-S14", "AC-S15", "AC-S16", "AC-S17", "AC-S18", "AC-S19", "AC-S20",
         "AC-S21", "AC-S22", "AC-S23", "AC-S24", "AC-S25", "AC-S26", "AC-S27", "AC-S28", "AC-S29", "AC-S30",
         "AC-S31", "AC-S32", "AC-S33", "AC-S34", "AC-S35", "AC-S36", "AC-S37", "AC-S38", "AC-S39",
-        "AC-S40",
+        "AC-S40", "AC-S41",
     ];
 
     private static IReadOnlySet<string> Cubiertos() =>
@@ -44,10 +44,10 @@ public class TrazabilidadTests
             .ToHashSet();
 
     [Fact]
-    public void Las_listas_tienen_los_99_ac_del_prd_y_los_40_de_la_spec()
+    public void Las_listas_tienen_los_99_ac_del_prd_y_los_41_de_la_spec()
     {
         Assert.Equal(99, _acPrd.Distinct().Count());
-        Assert.Equal(40, _acSpec.Distinct().Count());
+        Assert.Equal(41, _acSpec.Distinct().Count());
     }
 
     [Fact]

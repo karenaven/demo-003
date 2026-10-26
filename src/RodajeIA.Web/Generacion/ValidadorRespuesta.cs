@@ -32,8 +32,8 @@ public abstract record ResultadoValidacion
 }
 
 /// <summary>
-/// Valida el JSON crudo de la IA con las reglas 1 a 7 de contracts/gemini.md, en ese orden
-/// (FR-017, FR-017a, FR-017b, RN-03, RN-08 a RN-10). Informa solo la primera regla que falla.
+/// Valida el JSON crudo de la IA con las reglas 1 a 8 de contracts/gemini.md, en ese orden
+/// (FR-017, FR-017a, FR-017b, RF-05a, RN-03, RN-08 a RN-10). Informa solo la primera regla que falla.
 /// </summary>
 public sealed partial class ValidadorRespuesta(Vocabulario vocabulario, MoldePrompt molde)
 {
@@ -58,7 +58,7 @@ public sealed partial class ValidadorRespuesta(Vocabulario vocabulario, MoldePro
 
     private sealed record BloqueCrudo(int Clip, IReadOnlyList<TomaCruda> Tomas);
 
-    /// <param name="hojas">Las hojas efectivas de los personajes presentes en la escena (regla 7).</param>
+    /// <param name="hojas">Las hojas efectivas de los personajes presentes en la escena (reglas 7 y 8).</param>
     public ResultadoValidacion Validar(string json, IReadOnlyList<ClipEsperado> clips, IReadOnlyList<HojaEfectiva> hojas)
     {
         // Regla 1: formato.
@@ -193,6 +193,18 @@ public sealed partial class ValidadorRespuesta(Vocabulario vocabulario, MoldePro
             }
         }
 
+        // Regla 8 (RF-05a): los nombres de las hojas van en la acción tal cual la hoja, con sus tildes.
+        foreach (var bloque in ordenados)
+        {
+            foreach (var toma in bloque.Tomas)
+            {
+                if (NombreMalEscrito(toma.Accion, hojas) is var (escrito, nombre))
+                {
+                    return Falla($"la acción de la toma {toma.Orden} del clip {bloque.Clip} escribe «{escrito}» en lugar de «{nombre}»");
+                }
+            }
+        }
+
         return new ResultadoValidacion.Valida(ordenados.Select(b => new BloqueValidado(
             b.Clip,
             b.Tomas.Select(t => new TomaValidada(
@@ -238,6 +250,39 @@ public sealed partial class ValidadorRespuesta(Vocabulario vocabulario, MoldePro
 
         return null;
     }
+
+    /// <summary>
+    /// La primera palabra completa de la acción que coincide con un nombre de hoja si se ignoran las
+    /// tildes, pero no está escrita igual (por ejemplo "Jose Daniel" por "José Daniel"). Las
+    /// mayúsculas sí cuentan, para no confundir "la luz" con la hoja "Luz".
+    /// </summary>
+    private static (string Escrito, string Nombre)? NombreMalEscrito(string accion, IReadOnlyList<HojaEfectiva> hojas)
+    {
+        var texto = accion.Normalize(NormalizationForm.FormC);
+        var textoSinTildes = SinTildes(texto);
+        foreach (var hoja in hojas)
+        {
+            var nombre = hoja.Nombre.Normalize(NormalizationForm.FormC);
+            var nombreSinTildes = SinTildes(nombre);
+            for (var i = textoSinTildes.IndexOf(nombreSinTildes, StringComparison.Ordinal); i >= 0; i = textoSinTildes.IndexOf(nombreSinTildes, i + 1, StringComparison.Ordinal))
+            {
+                var fin = i + nombre.Length;
+                var palabraCompleta = (i == 0 || !DetectorPersonajes.EsParteDePalabra(texto[i - 1]))
+                    && (fin == texto.Length || !DetectorPersonajes.EsParteDePalabra(texto[fin]));
+                var escrito = texto.Substring(i, nombre.Length);
+                if (palabraCompleta && !string.Equals(escrito, nombre, StringComparison.Ordinal))
+                {
+                    return (escrito, hoja.Nombre);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>Cada carácter NFC por su letra base; conserva el largo para mapear posiciones.</summary>
+    private static string SinTildes(string nfc) =>
+        string.Concat(nfc.Select(c => char.IsSurrogate(c) ? c : c.ToString().Normalize(NormalizationForm.FormD)[0]));
 
     private static IEnumerable<(string Campo, string Valor)> Campos(HojaEfectiva hoja)
     {
