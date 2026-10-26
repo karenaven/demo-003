@@ -17,11 +17,9 @@ public sealed class SchemaSalida(Vocabulario vocabulario)
     public JsonObject Para(IReadOnlyList<ClipEsperado> clips)
     {
         var schema = _base.DeepClone().AsObject();
-        var bloques = schema["properties"]!["bloques"]!.AsObject();
-        bloques["minItems"] = clips.Count;
-        bloques["maxItems"] = clips.Count;
-
-        var bloque = bloques["items"]!["properties"]!.AsObject();
+        // Sin minItems/maxItems en "bloques": Gemini responde HTTP 400 con escenas de 20 clips.
+        // La cantidad de bloques la controla la validación (RN-08).
+        var bloque = schema["properties"]!["bloques"]!["items"]!["properties"]!.AsObject();
         bloque["clip"] = new JsonObject
         {
             ["type"] = "integer",

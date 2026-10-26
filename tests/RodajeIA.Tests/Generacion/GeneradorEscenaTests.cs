@@ -41,7 +41,7 @@ public sealed class GeneradorEscenaTests : IDisposable
     }
 
     [Fact]
-    public async Task El_schema_de_la_llamada_acota_los_clips_y_los_ids_de_dialogo_de_la_escena()
+    public async Task El_schema_de_la_llamada_acota_el_numero_de_clip_y_los_ids_de_dialogo_de_la_escena()
     {
         var (escenaId, escena, _) = await EscenaDeEjemploAsync();
         _entorno.Ia.Responde(EscenaDePrueba.RespuestaValida(escena));
@@ -49,8 +49,7 @@ public sealed class GeneradorEscenaTests : IDisposable
         await _entorno.ConRelojAsync(_entorno.Generador.GenerarAsync(escenaId, CancellationToken.None));
 
         var bloques = _entorno.Ia.Schemas.Single()["properties"]!["bloques"]!;
-        var clips = escena.Clips.Count;
-        Assert.Equal((clips, clips), ((int)bloques["minItems"]!, (int)bloques["maxItems"]!));
+        Assert.Equal(escena.Clips.Count, (int)bloques["items"]!["properties"]!["clip"]!["maximum"]!);
         var ids = escena.Clips.OrderBy(c => c.Numero)
             .SelectMany(c => c.Lineas.OrderBy(l => l.Posicion).Select(l => LineaDialogo.IdIaDe(c.Numero, l.Posicion)));
         var dialogos = bloques["items"]!["properties"]!["tomas"]!["items"]!["properties"]!["dialogos"]!;

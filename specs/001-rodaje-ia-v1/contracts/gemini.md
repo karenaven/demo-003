@@ -49,7 +49,7 @@ La hoja efectiva se calcula al iniciar cada llamada, no al empezar la escena (FR
 
 La parte técnica se genera al iniciar desde `config/vocabulario.json` (FR-015); el resto se
 completa en cada llamada con los datos de la escena (`SchemaSalida.Para`). `{valores de X}` es la
-lista `categorias.X.valores` en el orden del archivo, `{N}` la cantidad de clips y `{ids}` los
+lista `categorias.X.valores` en el orden del archivo, `{N}` el número del último clip y `{ids}` los
 ids de todas las líneas de la escena en orden de clip y posición (FR-016a):
 
 ```json
@@ -58,8 +58,6 @@ ids de todas las líneas de la escena en orden de clip y posición (FR-016a):
   "properties": {
     "bloques": {
       "type": "array",
-      "minItems": {N},
-      "maxItems": {N},
       "items": {
         "type": "object",
         "properties": {
@@ -95,7 +93,9 @@ movimiento). Ningún valor se escribe en el código (constitución II). Si la es
 diálogos, `dialogos` va sin `enum` y con `"maxItems": 0`.
 
 El enum de ids evita que la IA devuelva el texto de la línea en lugar de su id (observado en la
-demo: "el id ANA: Mentiroso. no es del clip 1"). El schema acota, pero no reemplaza a la
+demo: "el id ANA: Mentiroso. no es del clip 1"). `bloques` no lleva `minItems`/`maxItems`: con
+escenas de 20 clips Gemini responde HTTP 400 ("Request contains an invalid argument"); la
+cantidad de bloques la controla la regla 2. El schema acota, pero no reemplaza a la
 validación: que cada id caiga en su clip, una sola vez y en orden lo siguen controlando las reglas
 4 y 5.
 

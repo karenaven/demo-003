@@ -63,11 +63,13 @@ public class SchemaSalidaTests
     }
 
     [Fact]
-    public void Pide_un_bloque_por_clip_con_al_menos_una_toma()
+    public void Acota_el_numero_de_clip_y_pide_al_menos_una_toma_sin_fijar_la_cantidad_de_bloques()
     {
         var bloques = Bloques(new SchemaSalida(_vocabulario).Para(_tresClips));
 
-        Assert.Equal((3, 3), ((int)bloques["minItems"]!, (int)bloques["maxItems"]!));
+        // Gemini rechaza minItems/maxItems en bloques con 20 clips (HTTP 400); RN-08 lo valida.
+        Assert.Null(bloques["minItems"]);
+        Assert.Null(bloques["maxItems"]);
         var clip = bloques["items"]!["properties"]!["clip"]!;
         Assert.Equal((1, 3), ((int)clip["minimum"]!, (int)clip["maximum"]!));
         Assert.Equal(1, (int)bloques["items"]!["properties"]!["tomas"]!["minItems"]!);
