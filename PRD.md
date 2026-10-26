@@ -1,4 +1,4 @@
-# PRD-003: Rodaje IA — Herramienta de continuidad visual para series generadas con IA (v3)
+# PRD-003: Rodaje IA — Herramienta de continuidad visual para series generadas con IA (v4)
 
 ## Contexto y Problema
 
@@ -24,23 +24,25 @@ Rodaje IA convierte un guion con formato acordado en prompts por escena, listos 
 
 Los RF que agrupan varias acciones se dividen con letra (RF-03a, RF-03b…); el número identifica al grupo.
 
+La v4 incorpora las respuestas de las sesiones de aclaración de la spec 001 (2026-10-16 y 2026-10-17) y las correcciones de la revisión de la demo (2026-10-26), para que este documento sea autosuficiente. La spec 001 conserva el detalle de implementación y sus escenarios AC-S01 a AC-S41; si PRD y spec difieren, se corrigen los dos.
+
 **Series y personajes**
 
 - **RF-01a:** El sistema debe permitir crear una serie.
 - **RF-01b:** El sistema debe permitir listar las series existentes.
 - **RF-01c:** El sistema debe permitir editar una serie.
-- **RF-01d:** El sistema debe permitir eliminar una serie de la base de datos, junto con sus hojas de personaje y sus episodios (y todo lo que depende de ellos).
-- **RF-01e:** El sistema debe permitir crear una hoja de personaje dentro de una serie, con los campos del Anexo B; todos son obligatorios salvo heridas/marcas.
+- **RF-01d:** El sistema debe permitir eliminar una serie de la base de datos, junto con sus hojas de personaje y sus episodios (y todo lo que depende de ellos). No se permite mientras se generan escenas de la serie; se indica el motivo.
+- **RF-01e:** El sistema debe permitir crear una hoja de personaje dentro de una serie, con los campos del Anexo B; todos son obligatorios salvo heridas/marcas. El nombre es único dentro de la serie sin distinguir mayúsculas (las tildes sí distinguen) y no puede ser un marcador reservado del Anexo A; si no se cumple, la hoja no se guarda y se indica el motivo.
 - **RF-01f:** El sistema debe permitir listar las hojas de personaje de una serie.
-- **RF-01g:** El sistema debe permitir editar una hoja de personaje, sin dejar vacío ningún campo obligatorio (RF-01e).
-- **RF-01h:** El sistema debe permitir eliminar una hoja de personaje de la base de datos, junto con sus variantes, incluidas las de escenas en estado "generando" o "generada" (RF-09e no aplica).
+- **RF-01g:** El sistema debe permitir editar una hoja de personaje, sin dejar vacío ningún campo obligatorio (RF-01e). Se permite aunque una escena que la usa esté en "generando": la IA usa la hoja tal como estaba al iniciar cada llamada y el prompt muestra siempre la hoja actual. Renombrar una hoja se permite con un aviso de que los guiones ya cargados siguen usando el nombre anterior (la detección no se rehace; ver Fuera de Alcance).
+- **RF-01h:** El sistema debe permitir eliminar una hoja de personaje de la base de datos, junto con sus variantes, incluidas las de escenas en estado "generando" o "generada" (RF-09e no aplica). El prompt de esas escenas omite al personaje en la sección de hojas y sus diálogos siguen literales.
 
 **Carga y validación del guion**
 
 - **RF-02a:** El sistema debe permitir cargar el guion de un episodio como texto plano, asociado a una serie y un episodio existentes elegidos antes de la carga.
 - **RF-02b:** Si el episodio ya tiene un guion, el sistema debe sobrescribirlo con el nuevo guion válido, eliminando de la base de datos las escenas, clips, bloques y variantes del guion anterior.
 - **RF-03a:** El sistema debe validar el guion contra la convención de formato, los límites de tamaño y los errores de validación del Anexo A.
-- **RF-03b:** Si el guion es inválido, el sistema debe mostrar la lista de errores, cada uno con su número de línea (según el Anexo A) y su motivo.
+- **RF-03b:** Si el guion es inválido, el sistema debe mostrar la lista de errores, cada uno con su número de línea (según el Anexo A) y su motivo. Todos los errores se informan en una sola pasada (ninguno oculta a otro, aunque dependa de otro). Cada motivo es una frase en español que nombra el elemento, la regla incumplida y la forma esperada.
 - **RF-03c:** Si el guion es inválido, el sistema debe rechazarlo completo, sin procesar ni guardar ninguna parte (ni el guion, ni escenas, ni clips).
 
 **División del guion y detección de personajes (sin IA)**
@@ -49,29 +51,30 @@ Los RF que agrupan varias acciones se dividen con letra (RF-03a, RF-03b…); el 
 - **RF-04b:** El sistema debe dividir de forma determinística cada escena en sus clips.
 - **RF-04c:** El sistema debe separar de forma determinística el contenido de cada clip en acción, líneas de diálogo (personaje, acotación opcional y texto) y texto en pantalla.
 - **RF-04d:** El sistema debe extraer de forma determinística de cada escena su encabezado (número, INT/EXT, lugar, momento del día) y sus cuatro campos obligatorios.
-- **RF-05a:** El sistema debe identificar de forma determinística (sin IA) los personajes presentes en cada clip. Un personaje está presente en un clip si el nombre de su hoja aparece como palabra completa en la acción, escrito exactamente como en la hoja, con mayúscula inicial y con sus tildes (por ejemplo "Ana", "José Daniel"; "Anabel" o "Jose" no cuentan), o como marcador de diálogo en mayúsculas (por ejemplo `ANA:`).
+- **RF-05a:** El sistema debe identificar de forma determinística (sin IA) los personajes presentes en cada clip. Un personaje está presente en un clip si el nombre de su hoja aparece como palabra completa en la acción, escrito exactamente como en la hoja, con mayúscula inicial y con sus tildes (por ejemplo "Ana", "José Daniel"; "Anabel" o "Jose" no cuentan), o como marcador de diálogo en mayúsculas (por ejemplo `ANA:`). Un nombre escrito todo en mayúsculas dentro de la acción no cuenta. Los personajes detectados se guardan como referencia a la hoja, no como copia del nombre.
 - **RF-05b:** El sistema debe identificar de forma determinística (sin IA) los personajes presentes en cada escena. Un personaje está presente en una escena si está presente en alguno de sus clips (RF-05a) o si su nombre aparece en `PUESTA EN ESCENA:` escrito de la misma forma que en la acción.
+- **Criterios de comparación (RF-05a, RF-05b):** letras (con tildes y ñ), dígitos, guion y apóstrofo forman parte de una palabra; cualquier otro carácter la corta. Si dos nombres se solapan (hojas "José" y "José Daniel", acción "José Daniel"), gana el más largo y ese tramo cuenta solo para él; también en `PUESTA EN ESCENA:`. El marcador de diálogo debe ser el nombre de la hoja en mayúsculas con sus tildes (`JOSE DANIEL:` no detecta a "José Daniel").
 
 **Generación y revisión**
 
-- **RF-06a:** El sistema debe generar con IA, para cada escena, un bloque por clip, donde cada bloque es una lista de tomas cuyos campos técnicos salen del vocabulario cerrado (Anexo E) mediante salida estructurada (Anexo D).
-- **RF-06b:** El sistema debe validar cada respuesta de la IA contra RN-08, RN-09 y RN-10 y tratar como fallida la que no los cumpla.
-- **RF-06c:** El sistema debe permitir iniciar con un botón "Generar" la generación de todas las escenas en estado "pendiente" de un episodio.
+- **RF-06a:** El sistema debe generar con IA, para cada escena, un bloque por clip, donde cada bloque es una lista de tomas cuyos campos técnicos salen del vocabulario cerrado (Anexo E) mediante salida estructurada (Anexo D). La IA recibe solo la escena que se genera (sus campos y clips, con el id de cada línea de diálogo) y las hojas efectivas de sus personajes presentes; no recibe otras escenas. Los personajes sin hoja le llegan solo a través de sus líneas de diálogo.
+- **RF-06b:** El sistema debe validar cada respuesta de la IA contra RN-08 a RN-11 y tratar como fallida la que no los cumpla.
+- **RF-06c:** El sistema debe permitir iniciar con un botón "Generar" la generación de todas las escenas en estado "pendiente" de un episodio. Se generan de a una, en orden de número de escena. Hay una sola generación en curso en toda la aplicación (también entre pestañas): mientras tanto, "Generar" y "Reintentar" de todos los episodios se muestran deshabilitados con el motivo, y un pedido que llegue igual se rechaza; no hay cola de pedidos. El avance se ve en vivo, sin recargar, incluido el intento en curso ("intento 2 de 3") durante las esperas entre intentos.
 - **RF-06d:** El sistema debe dejar en estado "pendiente", sin iniciar la generación, las escenas de un guion recién cargado (RF-02a, RF-02b), para que antes se puedan definir las variantes de personaje (RF-09a).
 - **RF-07a:** El sistema debe mostrar los bloques generados de cada escena para su revisión.
-- **RF-07b:** El sistema debe permitir editar los campos técnicos de cada toma, aceptando solo valores del vocabulario (Anexo E); ángulo y movimiento, que son opcionales, se pueden dejar vacíos.
-- **RF-07c:** El sistema debe permitir editar el texto de acción de cada toma.
+- **RF-07b:** El sistema debe permitir editar los campos técnicos de cada toma, aceptando solo valores del vocabulario (Anexo E); ángulo y movimiento, que son opcionales, se pueden dejar vacíos. Las tomas se editan solo en escenas "generadas". Si el vocabulario cambió y una toma guardada tiene un valor que ya no existe, el valor se conserva y el prompt lo muestra tal cual; la revisión marca la toma y la edición solo ofrece valores vigentes.
+- **RF-07c:** El sistema debe permitir editar el texto de acción de cada toma. No puede quedar vacía; a mano sí se permiten comillas. Las referencias de diálogo de una toma no se editan: quedan como las dejó la IA.
 - **RF-07d:** El sistema debe volver a armar el texto del bloque automáticamente después de cada edición.
 - **RF-07e:** El sistema debe guardar en la base de datos cada edición de una toma.
 
 **Prompt final**
 
-- **RF-08a:** El sistema debe armar, por plantilla determinística (Anexo D), un prompt final por escena con los bloques numerados en el orden de los clips.
-- **RF-08b:** El sistema debe permitir copiar el prompt final completo de una escena con un solo botón.
+- **RF-08a:** El sistema debe armar, por plantilla determinística (Anexo D), un prompt final por escena con los bloques numerados en el orden de los clips. El prompt no se guarda: se arma cada vez con los datos guardados y el molde y el estilo vigentes. No tiene largo máximo en v1; se muestra su cantidad de caracteres.
+- **RF-08b:** El sistema debe permitir copiar el prompt final completo de una escena con un solo botón. Si copiar al portapapeles falla, se avisa y el prompt queda seleccionable para copiarlo a mano.
 
 **Variantes de personaje**
 
-- **RF-09a:** El sistema debe permitir crear, para una escena, una variante de un personaje que reemplace uno o más de estos campos de su hoja base: edad, peinado, vestuario y heridas/marcas. La variante debe cambiar al menos uno de esos campos. Cada personaje tiene como máximo una variante por escena.
+- **RF-09a:** El sistema debe permitir crear, para una escena, una variante de un personaje detectado en esa escena que reemplace uno o más de estos campos de su hoja base: edad, peinado, vestuario y heridas/marcas. La variante debe cambiar al menos uno de esos campos: un valor distinto del de la hoja base; heridas/marcas se puede vaciar a propósito ("sin heridas"). Cada personaje tiene como máximo una variante por escena. En escenas "pendiente" o "error" las variantes se pueden modificar, y la generación usa la hoja efectiva vigente al iniciar cada llamada.
 - **RF-09b:** El sistema debe permitir listar las variantes de personaje de una escena.
 - **RF-09c:** El sistema debe permitir editar una variante de personaje, sin dejarla sin ningún campo cambiado (RF-09a).
 - **RF-09d:** El sistema debe permitir eliminar una variante de personaje de la base de datos, sin modificar la hoja base.
@@ -79,33 +82,34 @@ Los RF que agrupan varias acciones se dividen con letra (RF-03a, RF-03b…); el 
 
 **Progreso de la generación**
 
-- **RF-10a:** El sistema debe guardar los bloques de cada escena en cuanto se generan, de modo que un fallo en otra escena no los borre.
-- **RF-10b:** El sistema debe marcar como "error" una escena cuya generación falla después de agotar los intentos de RNF-07.
-- **RF-10c:** El sistema debe permitir reintentar la generación de una escena en estado "error".
+- **RF-10a:** El sistema debe guardar los bloques de cada escena en cuanto se generan, de modo que un fallo en otra escena no los borre. Se guardan de forma atómica junto con el paso a "generada"; si el guardado falla, la escena queda en "error" sin bloques sueltos.
+- **RF-10b:** El sistema debe marcar como "error" una escena cuya generación falla después de agotar los intentos de RNF-07, y mostrar un motivo corto en lenguaje simple, solo del último intento fallido, con su categoría: la IA no respondió a tiempo, la IA devolvió un error, la respuesta no cumplió las reglas (con la regla incumplida), error de configuración o error interno. Un error de configuración no se reintenta y detiene la cola: las escenas siguientes quedan en "pendiente".
+- **RF-10c:** El sistema debe permitir reintentar la generación de una escena en estado "error". Reintentar genera solo esa escena.
 - **RF-10d:** El sistema debe mantener para cada escena un estado de generación: "pendiente" al cargarse el guion, "generando" mientras se genera, "generada" cuando sus bloques quedan guardados y "error" según RF-10b.
-- **RF-10e:** Al iniciar la aplicación, el sistema debe pasar a "error" toda escena que haya quedado en "generando".
+- **RF-10e:** Al iniciar la aplicación, el sistema debe pasar a "error" toda escena que haya quedado en "generando". La generación no se reanuda sola: las escenas pendientes esperan a que se pulse "Generar".
+- **RF-10f:** El sistema debe registrar cada intento de generación (fecha, escena, intento, duración, resultado y motivo), con la respuesta cruda de la IA solo si fue inválida. El registro nunca incluye la clave de la IA.
 
 **Episodios**
 
 - **RF-11a:** El sistema debe permitir crear un episodio dentro de una serie, con número y título; el número debe ser único dentro de la serie.
 - **RF-11b:** El sistema debe permitir listar los episodios de una serie.
 - **RF-11c:** El sistema debe permitir editar el título de un episodio; el número no se puede cambiar.
-- **RF-11d:** El sistema debe permitir eliminar un episodio de la base de datos, junto con su guion, escenas, clips, bloques y variantes.
-- **RF-11e:** El sistema debe mostrar, dentro de cada episodio, sus escenas en orden, cada una con su estado de generación y, si está generada, su prompt final.
+- **RF-11d:** El sistema debe permitir eliminar un episodio de la base de datos, junto con su guion, escenas, clips, bloques y variantes. No se permite mientras se generan escenas del episodio; se indica el motivo.
+- **RF-11e:** El sistema debe mostrar, dentro de cada episodio, sus escenas en orden, cada una con su estado de generación y, si está generada, su prompt final. Si no está generada, se muestra el estado y la acción posible ("Reintentar" con el motivo, si está en "error"), sin prompt ni botón de copiar.
 
 ## Requerimientos No Funcionales
 
 Los números de las partes determinísticas y el de la generación con Gemini se fijan ahora; el de Gemini se verifica con una medición (spike) previa a construir las pantallas.
 
-Los tiempos se miden como p95 en el equipo local donde corre la app; RNF-03 y RNF-04 se miden sobre 100 ejecuciones (la v1 es monousuario y local; ver Fuera de Alcance).
+Los tiempos se miden como p95 en el equipo local donde corre la app, que se anota junto al resultado; RNF-03 y RNF-04 se miden sobre 100 ejecuciones sin contar la primera (la v1 es monousuario y local; ver Fuera de Alcance). RNF-05 se mide con al menos 10 generaciones y cuenta solo la duración de la llamada exitosa, sin intentos fallidos ni esperas. La tasa de escenas generadas dentro de los 3 intentos se mide con dos escenas de referencia (la del Anexo A y una de 20 clips), 10 generaciones de cada una. El spike se vuelve a medir cuando cambia el modelo de IA, la instrucción de generación, el schema o el vocabulario.
 
 | ID | Requerimiento | Valor |
 | --- | --- | --- |
 | RNF-03 | Validación y parseo de un guion de tamaño máximo (10 escenas × 20 clips) | < 1 s (p95) |
 | RNF-04 | Armado del prompt final por plantilla, por escena | < 1 s (p95) |
 | RNF-05 | Generación con Gemini de una escena de 20 clips | < 30 s (p95). Medido en el spike: 22,2 s (p95), ver resultados abajo |
-| RNF-06 | Tiempo máximo de espera por llamada a Gemini | 60 s |
-| RNF-07 | Reintentos por escena ante error, timeout o respuesta inválida | 2 reintentos (3 intentos en total): espera de 10 s antes del primer reintento y de 30 s antes del segundo. Excepción: un error de configuración (falta la clave, clave rechazada, modelo inexistente) no se reintenta (spec 001, FR-018a) |
+| RNF-06 | Tiempo máximo de espera por llamada a Gemini | 60 s por llamada; las esperas entre intentos no cuentan y no hay tope adicional por escena (peor caso: 3 × 60 s + 10 s + 30 s = 220 s) |
+| RNF-07 | Reintentos por escena ante error, timeout o respuesta inválida | 2 reintentos (3 intentos en total): espera de 10 s antes del primer reintento y de 30 s antes del segundo. Excepción: un error de configuración (falta la clave, clave rechazada, modelo inexistente) no se reintenta y detiene la cola (RF-10b) |
 
 RNF-01 y RNF-02 (límites de escenas y clips) pasaron al Anexo A porque son reglas de validación de RF-03a. RNF-08 (progreso por escena) pasó a RF-10a–c porque describe un comportamiento, no una métrica. Esos IDs no se reutilizan.
 
@@ -267,6 +271,8 @@ No hay AC de control de acceso: la v1 es monousuario y local, sin login ni separ
 - Cargar un guion nuevo en un episodio (RF-02b) mientras se están generando las escenas de su guion anterior.
 - Regenerar una escena en estado "generada": solo se reintentan las escenas en "error" (RF-10c); para regenerar hay que volver a cargar el guion (RF-02b).
 - Cancelar una generación en curso.
+- Validar la ortografía general de la acción que escribe la IA: solo se validan los nombres de hoja (RN-11).
+- Editar las referencias de diálogo de una toma (RF-07c).
 - Volver a detectar los personajes de un guion ya cargado cuando se crea o se renombra una hoja: la detección (RF-05) corre solo al cargar el guion; para actualizarla hay que volver a cargarlo (RF-02b).
 
 ## Riesgos y Dependencias
@@ -280,6 +286,9 @@ No hay AC de control de acceso: la v1 es monousuario y local, sin login ni separ
 | La IA altera el diálogo | El diálogo se referencia por identificador y se inserta literal (RN-04) |
 | La IA devuelve menos o más bloques que clips | Validación post-respuesta y reintento (RN-08) |
 | La IA omite o repite una línea de diálogo | Validación post-respuesta de las referencias y reintento (RN-09) |
+| La IA copia la hoja del personaje en la acción, aunque la instrucción lo prohíbe (observado en la demo) | Validación post-respuesta y reintento (RN-11) |
+| La IA devuelve el texto de una línea de diálogo en lugar de su id (observado en la demo) | Schema por llamada con los ids de la escena como enum (RN-02) y validación de RN-09 |
+| La IA escribe la acción sin tildes, incluidos los nombres ("Jose Daniel sonrie") | La instrucción pide ortografía completa; un nombre de hoja sin sus tildes hace fallida la respuesta (RN-11). El resto de la ortografía no se valida |
 | Guion mal formateado | RF-03 muestra errores con línea y motivo; se devuelve al guionista |
 | Un clip no entra en 8 s de Flow | Criterio del guionista en v1 |
 | Latencia de Gemini mayor que la esperada | Spike técnico realizado: p95 de 22,2 s para 20 clips, dentro de RNF-05 |
@@ -291,6 +300,8 @@ No hay AC de control de acceso: la v1 es monousuario y local, sin login ni separ
 - API key de Gemini (disponible).
 - Vocabulario técnico en `config/vocabulario.json` (disponible; lo mantiene el/la productor/a).
 - Instrucción para Gemini en `config/instruccion-generacion.txt` (disponible).
+- Los cuatro archivos de `config/` (vocabulario, estilo, instrucción y molde del prompt) se leen y validan una sola vez, al iniciar: si alguno falta o es inválido (JSON inválido, categoría obligatoria sin valores, valores repetidos, marcadores de la instrucción ausentes, secciones o cadenas de contrato del molde ausentes), la aplicación no arranca y muestra el archivo y el problema. Un cambio exige reiniciar y afecta a todos los prompts, incluidos los de escenas ya generadas.
+- **Supuesto:** el texto de la escena y las hojas efectivas se envían a Gemini; se documenta aquí, sin aviso en pantalla.
 - Google Flow, con clips de hasta 8 segundos.
 - Que el/la guionista respete la convención de formato (RF-03).
 
@@ -311,10 +322,11 @@ El guion se divide en escenas, cada escena trae cuatro campos obligatorios y se 
 | `TEXTO EN PANTALLA: "texto"` | Clip | No; como máximo uno por clip | `TEXTO EN PANTALLA: "Hermano, ..."` |
 | Línea sin marcador | Clip | No | Bloque de acción |
 
-**Reglas.** Los personajes se nombran siempre con el nombre de su hoja: en la acción, tal como está en la hoja, con mayúscula inicial y sus tildes (`Ana`, `José Daniel`); como marcador de diálogo, en mayúsculas (`ANA:`, `JOSÉ DANIEL:`). Un personaje secundario sin hoja puede tener diálogo (`MESERO: "¿Algo más?"`): no es un error y no se detecta como personaje (RN-07). En el encabezado de escena, los separadores pueden ser raya (`—`) o guion común (`-`), e INT/EXT se escribe solo `INT.` o `EXT.`, con punto. Las líneas en blanco se permiten en cualquier lugar y se ignoran (no cuentan como contenido), pero sí cuentan para el número de línea que se reporta. Cada clip debe poder representarse en unos 8 segundos (límite de Flow); esto es criterio del guionista y el sistema no lo valida.
+**Reglas.** Los marcadores se reconocen solo en su forma exacta de la tabla (mayúsculas, tildes y dos puntos pegados). Cada campo de escena va en una sola línea. Se aceptan LF, CRLF y CR como fin de línea, se ignora un BOM inicial y se recortan espacios y tabulaciones al inicio y al final de cada línea para reconocer marcadores; los números de línea cuentan líneas físicas. Diálogos y texto en pantalla admiten comillas rectas (`"`) y tipográficas (`“ ”`), también internas, y se insertan tal como están escritos. Los personajes se nombran siempre con el nombre de su hoja: en la acción, tal como está en la hoja, con mayúscula inicial y sus tildes (`Ana`, `José Daniel`); como marcador de diálogo, en mayúsculas (`ANA:`, `JOSÉ DANIEL:`). Un personaje secundario sin hoja puede tener diálogo (`MESERO: "¿Algo más?"`): no es un error y no se detecta como personaje (RN-07). En el encabezado de escena, los separadores pueden ser raya (`—`) o guion común (`-`), e INT/EXT se escribe solo `INT.` o `EXT.`, con punto. Las líneas en blanco se permiten en cualquier lugar y se ignoran (no cuentan como contenido), pero sí cuentan para el número de línea que se reporta. Cada clip debe poder representarse en unos 8 segundos (límite de Flow); esto es criterio del guionista y el sistema no lo valida.
 
 **Errores de validación.** Cualquiera de estos casos rechaza el guion completo (RF-03c):
 
+- Guion de más de 100.000 caracteres: se informa un único error en la línea 1 y no se sigue validando.
 - Guion vacío o sin ningún encabezado `ESCENA`.
 - Texto antes del primer encabezado `ESCENA`.
 - Un encabezado con INT/EXT escrito de otra forma que `INT.` o `EXT.` (por ejemplo `INT` sin punto o `I/E`).
@@ -373,15 +385,16 @@ Todos los campos de la hoja base son obligatorios, salvo heridas/marcas.
 La IA solo decide la técnica y redacta la acción de cada toma; todo lo que debe ser idéntico entre escenas lo inserta el sistema de forma literal.
 
 - **RN-01:** Ningún campo obligatorio del prompt final puede quedar vacío: estilo, locación, iluminación base, puesta en escena, audio y, en cada toma, plano, óptica e iluminación. La sección de hojas es obligatoria solo si hay personajes con hoja presentes; si no hay ninguno, se omite y la IA de video define el aspecto de los personajes.
-- **RN-02:** Plano, óptica, iluminación, ángulo y movimiento solo aceptan valores del vocabulario cerrado. Se garantiza con un schema de salida estructurada de Gemini donde cada campo es un enum.
-- **RN-03:** Las hojas de personaje se insertan en el prompt tal cual están guardadas. La IA las recibe como contexto pero nunca las reescribe.
-- **RN-04:** El diálogo y el texto en pantalla se insertan literalmente desde el guion. La IA solo indica en qué toma va cada línea, referenciándola por su identificador.
+- **RN-02:** Plano, óptica, iluminación, ángulo y movimiento solo aceptan valores del vocabulario cerrado. Se garantiza con un schema de salida estructurada de Gemini donde cada campo es un enum, generado desde `config/vocabulario.json`. El schema se arma por llamada: además acota la cantidad de bloques y el número de clip a los clips de la escena, y restringe los diálogos a un enum con los ids de sus líneas.
+- **RN-03:** Las hojas de personaje se insertan en el prompt tal cual están guardadas. La IA las recibe como contexto pero nunca las reescribe ni las copia en la acción (se valida en RN-11).
+- **RN-04:** El diálogo y el texto en pantalla se insertan literalmente desde el guion: la línea original, sin espacios al inicio y al final y sin rearmarla. La IA solo indica en qué toma va cada línea, referenciándola por su identificador `c{clip}-d{n}` (`n` es la posición de la línea en el clip, desde 1; por ejemplo `c1-d2`), que se deriva del guion. Dentro de una toma, los diálogos se insertan en el orden del guion, no en el que los devuelve la IA.
 - **RN-05:** La hoja efectiva de una escena es la hoja base con los campos de la variante reemplazados, y es la que recibe la IA y la que se inserta en el prompt. Solo edad, peinado, vestuario y heridas/marcas admiten variante. Las variantes se definen antes de pulsar "Generar" (RF-06c).
 - **RN-06:** El estilo cinematográfico es un único texto fijo, global para todas las series.
 - **RN-07:** Los personajes secundarios sin hoja (por ejemplo, un mesero) no se detectan ni generan hoja, aunque tengan diálogo; su diálogo se acepta y se inserta literal como cualquier otro (RN-04). La IA los describe genéricamente en el texto de acción y la IA de video define su aspecto.
 - **RN-08:** La cantidad de bloques devueltos por la IA debe ser igual a la cantidad de clips de la escena, y cada número de clip, de 1 a N, debe aparecer exactamente una vez. Si no se cumple, la respuesta se trata como fallida y se reintenta.
 - **RN-09:** Cada línea de diálogo de un clip debe estar referenciada exactamente una vez entre las tomas del bloque de ese clip. Si falta una línea, si una línea se referencia más de una vez o si se referencia un id inexistente o de otro clip, la respuesta se trata como fallida y se reintenta (RNF-07).
-- **RN-10:** Cada bloque devuelto por la IA debe tener al menos una toma, y cada toma debe tener un texto de acción no vacío. Si no se cumple, la respuesta se trata como fallida y se reintenta (RNF-07).
+- **RN-10:** Cada bloque devuelto por la IA debe tener al menos una toma, y cada toma debe tener un texto de acción no vacío (una acción con solo espacios cuenta como vacía; la válida se guarda recortada). No hay máximo de tomas por bloque ni de largo de la acción. Si no se cumple, la respuesta se trata como fallida y se reintenta (RNF-07).
+- **RN-11:** Además, la respuesta se trata como fallida y se reintenta (RNF-07) si: no es JSON válido o no respeta la estructura pedida (campos faltantes, sobrantes o de otro tipo); trae un valor técnico fuera del vocabulario, aunque el schema debería impedirlo; falta plano, óptica o iluminación (un ángulo o movimiento ausente o vacío equivale a "sin valor"); recorriendo las tomas de un bloque, una línea de diálogo aparece antes que otra ya referenciada (fuera del orden del guion); la acción contiene comillas (`"`, `“` o `”`); la acción copia la hoja de un personaje presente, es decir, una etiqueta de campo del molde (por ejemplo `Rol:`) o un fragmento de 3 o más palabras de un campo de su hoja efectiva; o la acción escribe un nombre de hoja sin sus tildes (por ejemplo "Jose Daniel" por "José Daniel"; las mayúsculas sí cuentan, así que "la luz" no se confunde con la hoja "Luz"). Si una respuesta incumple varias reglas, el motivo informa solo la primera en este orden: estructura o vocabulario, RN-08, RN-10, RN-09, orden de los diálogos, comillas, copia de la hoja y nombres sin tildes.
 
 ## Anexo D: Estructura del prompt final
 
@@ -396,7 +409,7 @@ El prompt final de una escena tiene seis secciones en orden fijo; solo la últim
 | 5 | Audio | Guion (`AUDIO:`) |
 | 6 | Bloque 1 … Bloque N (uno por clip) | IA (tomas estructuradas) + plantilla |
 
-**Instrucción que recibe Gemini (por escena):** un texto fijo versionado en `config/instruccion-generacion.txt`, con el rol, las reglas de generación y los lugares donde el sistema inserta la escena completa (sus campos y sus clips, con los ids de cada línea de diálogo) y las hojas efectivas de los personajes presentes (RN-05). El vocabulario llega como enums del schema de salida. La IA decide cuántas tomas tiene cada clip, pero no divide ni une clips: la división ya viene hecha por RF-04b.
+**Instrucción que recibe Gemini (por escena):** un texto fijo versionado en `config/instruccion-generacion.txt`, con el rol, las reglas de generación y los lugares donde el sistema inserta la escena completa (sus campos y sus clips, con los ids de cada línea de diálogo) y las hojas efectivas de los personajes presentes (RN-05), en el mismo texto que irá en el prompt. El vocabulario y los ids de diálogo llegan como enums del schema de salida (RN-02). La IA decide cuántas tomas tiene cada clip, pero no divide ni une clips: la división ya viene hecha por RF-04b.
 
 **Salida estructurada que se pide a Gemini (por escena):**
 
@@ -425,7 +438,9 @@ El prompt final de una escena tiene seis secciones en orden fijo; solo la últim
 
 **Plantilla de un bloque:** las tomas se unen con "Corte a". Si el clip tiene `TEXTO EN PANTALLA`, se agrega literal como único texto visible permitido; si no, se cierra con "Sin subtítulos ni texto en pantalla."
 
-Las plantillas están implementadas en `config/molde-prompt.json`. Su redacción es un borrador y se ajusta comparando su salida con el ejemplo de prompt manual actual.
+**Orden de los personajes:** por primera aparición en la escena (`PUESTA EN ESCENA:` y luego los clips en orden); si empatan, alfabético.
+
+**Molde:** las plantillas están implementadas en `config/molde-prompt.json`, que es la fuente normativa de la redacción. Este PRD fija la estructura y tres cadenas de contrato que el molde debe conservar: "Bloque N:", "Corte a" y "Sin subtítulos ni texto en pantalla.". Los opcionales vacíos no dejan separadores sueltos, y un "." justo después de una variable se omite si el valor ya termina en `.`, `!`, `?` o `…`. La redacción se ajusta comparando su salida con el ejemplo de prompt manual actual.
 
 ## Anexo E: Vocabulario técnico (borrador v0.1)
 
