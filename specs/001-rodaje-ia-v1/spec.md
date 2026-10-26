@@ -656,7 +656,9 @@ PRD (constitución, principio V).
   Anexo E (RF-06a, RN-02). El único texto libre de la IA es la acción de cada toma. El schema
   de salida estructurada MUST generarse desde `config/vocabulario.json`, con plano, óptica,
   iluminación, ángulo y movimiento como enums; ningún valor del vocabulario se escribe en el
-  código.
+  código. En cada llamada, el schema MUST además acotar la cantidad de bloques y el número de
+  clip a los clips de la escena, y restringir los diálogos a un enum con los identificadores de
+  sus líneas (FR-016a).
 - **FR-015a**: Al iniciar, el sistema MUST validar `config/vocabulario.json` (que exista, que
   sea JSON válido, que las categorías obligatorias tengan al menos un valor y que no haya
   valores repetidos dentro de una categoría). Si no es válido, la aplicación MUST NOT arrancar y

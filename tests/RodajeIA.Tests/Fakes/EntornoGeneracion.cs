@@ -19,6 +19,7 @@ public sealed class EntornoGeneracion : IDisposable
             Base,
             Ia,
             new ArmadorInstruccion(_config.Instruccion, _config.Molde),
+            new SchemaSalida(_config.Vocabulario),
             new ValidadorRespuesta(_config.Vocabulario),
             Registro,
             Notificador,

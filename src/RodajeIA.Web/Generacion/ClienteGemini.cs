@@ -1,13 +1,14 @@
+using System.Text.Json.Nodes;
 using Google.GenAI;
 using Google.GenAI.Types;
 
 namespace RodajeIA.Web.Generacion;
 
 /// <summary>
-/// Llama a Gemini con salida estructurada y el schema generado desde el vocabulario (research R-05).
+/// Llama a Gemini con salida estructurada y el schema de la escena (research R-05).
 /// Los reintentos del SDK se desactivan: los reintentos son los de FR-018.
 /// </summary>
-public sealed class ClienteGemini(IConfiguration configuracion, SchemaSalida schema) : IClienteIa, IDisposable
+public sealed class ClienteGemini(IConfiguration configuracion) : IClienteIa, IDisposable
 {
     public const string ModeloPorDefecto = "gemini-3.1-flash-lite";
 
@@ -15,7 +16,7 @@ public sealed class ClienteGemini(IConfiguration configuracion, SchemaSalida sch
     private readonly string _modelo = configuracion["Gemini:Modelo"] is { Length: > 0 } modelo ? modelo : ModeloPorDefecto;
     private Client? _cliente;
 
-    public async Task<RespuestaIa> GenerarAsync(string instruccion, CancellationToken ct)
+    public async Task<RespuestaIa> GenerarAsync(string instruccion, JsonObject schema, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(_clave))
         {
@@ -26,7 +27,7 @@ public sealed class ClienteGemini(IConfiguration configuracion, SchemaSalida sch
         var config = new GenerateContentConfig
         {
             ResponseMimeType = "application/json",
-            ResponseJsonSchema = schema.Json,
+            ResponseJsonSchema = schema,
             HttpOptions = new HttpOptions { RetryOptions = new HttpRetryOptions { Attempts = 1 } },
         };
 

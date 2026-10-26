@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using RodajeIA.Web.Datos;
 using RodajeIA.Web.Datos.Entidades;
@@ -16,6 +17,7 @@ public sealed class GeneradorEscena(
     IDbContextFactory<RodajeDbContext> fabrica,
     IClienteIa ia,
     ArmadorInstruccion armador,
+    SchemaSalida schema,
     ValidadorRespuesta validador,
     RegistroIntentos registro,
     NotificadorGeneracion notificador,
@@ -48,9 +50,10 @@ public sealed class GeneradorEscena(
                 // La hoja efectiva se calcula al iniciar cada llamada (FR-003a).
                 var escena = await CargarAsync(escenaId, ct);
                 var instruccion = armador.Armar(escena);
-                json = await LlamarAsync(instruccion, ct);
+                var clips = ClipsEsperados(escena);
+                json = await LlamarAsync(instruccion, schema.Para(clips), ct);
 
-                var validacion = validador.Validar(json, ClipsEsperados(escena));
+                var validacion = validador.Validar(json, clips);
                 if (validacion is ResultadoValidacion.Invalida invalida)
                 {
                     (falla, detalle) = (CategoriaFalla.RespuestaInvalida, invalida.Motivo);
@@ -89,11 +92,11 @@ public sealed class GeneradorEscena(
         return new ResultadoEscena(EstadoEscena.Error, falla);
     }
 
-    private async Task<string> LlamarAsync(string instruccion, CancellationToken ct)
+    private async Task<string> LlamarAsync(string instruccion, JsonObject schemaEscena, CancellationToken ct)
     {
         using var timeout = new CancellationTokenSource(TiempoMaximoPorLlamada, tiempo);
         using var enlazado = CancellationTokenSource.CreateLinkedTokenSource(ct, timeout.Token);
-        return (await ia.GenerarAsync(instruccion, enlazado.Token)).Json;
+        return (await ia.GenerarAsync(instruccion, schemaEscena, enlazado.Token)).Json;
     }
 
     private async Task<(int EpisodioId, int Numero)> MarcarGenerandoAsync(int escenaId, CancellationToken ct)

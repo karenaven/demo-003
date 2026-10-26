@@ -47,8 +47,10 @@ La hoja efectiva se calcula al iniciar cada llamada, no al empezar la escena (FR
 
 ## Schema de salida estructurada
 
-Se genera al iniciar desde `config/vocabulario.json` (FR-015). `{valores de X}` es la lista
-`categorias.X.valores` en el orden del archivo:
+La parte técnica se genera al iniciar desde `config/vocabulario.json` (FR-015); el resto se
+completa en cada llamada con los datos de la escena (`SchemaSalida.Para`). `{valores de X}` es la
+lista `categorias.X.valores` en el orden del archivo, `{N}` la cantidad de clips y `{ids}` los
+ids de todas las líneas de la escena en orden de clip y posición (FR-016a):
 
 ```json
 {
@@ -56,12 +58,15 @@ Se genera al iniciar desde `config/vocabulario.json` (FR-015). `{valores de X}` 
   "properties": {
     "bloques": {
       "type": "array",
+      "minItems": {N},
+      "maxItems": {N},
       "items": {
         "type": "object",
         "properties": {
-          "clip": { "type": "integer" },
+          "clip": { "type": "integer", "minimum": 1, "maximum": {N} },
           "tomas": {
             "type": "array",
+            "minItems": 1,
             "items": {
               "type": "object",
               "properties": {
@@ -71,7 +76,7 @@ Se genera al iniciar desde `config/vocabulario.json` (FR-015). `{valores de X}` 
                 "angulo":      { "type": "string", "enum": ["{valores de angulo}"] },
                 "movimiento":  { "type": "string", "enum": ["{valores de movimiento}"] },
                 "accion":      { "type": "string" },
-                "dialogos":    { "type": "array", "items": { "type": "string" } }
+                "dialogos":    { "type": "array", "items": { "type": "string", "enum": ["{ids}"] } }
               },
               "required": ["plano", "optica", "iluminacion", "accion", "dialogos"]
             }
@@ -86,7 +91,13 @@ Se genera al iniciar desde `config/vocabulario.json` (FR-015). `{valores de X}` 
 ```
 
 Una categoría con `"obligatorio": true` va en `required`; con `false`, no (ángulo,
-movimiento). Ningún valor se escribe en el código (constitución II).
+movimiento). Ningún valor se escribe en el código (constitución II). Si la escena no tiene
+diálogos, `dialogos` va sin `enum` y con `"maxItems": 0`.
+
+El enum de ids evita que la IA devuelva el texto de la línea en lugar de su id (observado en la
+demo: "el id ANA: Mentiroso. no es del clip 1"). El schema acota, pero no reemplaza a la
+validación: que cada id caiga en su clip, una sola vez y en orden lo siguen controlando las reglas
+4 y 5.
 
 ## Validación de la respuesta (FR-017, FR-017a, FR-017b)
 

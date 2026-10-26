@@ -5,14 +5,45 @@ namespace RodajeIA.Web.Generacion;
 
 /// <summary>
 /// Schema de salida estructurada generado desde el vocabulario, con cada campo técnico como enum
-/// (FR-015, constitución II). Ningún valor del vocabulario está escrito en el código.
+/// (FR-015, constitución II). Ningún valor del vocabulario está escrito en el código. Se arma por
+/// llamada: el número de clip queda acotado a los clips de la escena y los diálogos son un enum
+/// con los ids de sus líneas (FR-016a), para que la IA no pueda devolver el texto en vez del id.
 /// </summary>
 public sealed class SchemaSalida(Vocabulario vocabulario)
 {
-    private readonly JsonObject _schema = Construir(vocabulario);
+    private readonly JsonObject _base = Construir(vocabulario);
 
-    /// <summary>Una copia del schema; quien la reciba puede modificarla.</summary>
-    public JsonObject Json => _schema.DeepClone().AsObject();
+    /// <summary>Un schema nuevo para la escena con estos clips; quien lo reciba puede modificarlo.</summary>
+    public JsonObject Para(IReadOnlyList<ClipEsperado> clips)
+    {
+        var schema = _base.DeepClone().AsObject();
+        var bloques = schema["properties"]!["bloques"]!.AsObject();
+        bloques["minItems"] = clips.Count;
+        bloques["maxItems"] = clips.Count;
+
+        var bloque = bloques["items"]!["properties"]!.AsObject();
+        bloque["clip"] = new JsonObject
+        {
+            ["type"] = "integer",
+            ["minimum"] = clips.Min(c => c.Numero),
+            ["maximum"] = clips.Max(c => c.Numero),
+        };
+
+        var ids = clips.SelectMany(c => c.Lineas).Select(id => (JsonNode)id).ToArray();
+        var item = new JsonObject { ["type"] = "string" };
+        var dialogos = new JsonObject { ["type"] = "array", ["items"] = item };
+        if (ids.Length == 0)
+        {
+            dialogos["maxItems"] = 0;
+        }
+        else
+        {
+            item["enum"] = new JsonArray(ids);
+        }
+
+        bloque["tomas"]!["items"]!["properties"]!["dialogos"] = dialogos;
+        return schema;
+    }
 
     private static JsonObject Construir(Vocabulario vocabulario)
     {
@@ -53,6 +84,7 @@ public sealed class SchemaSalida(Vocabulario vocabulario)
                             ["tomas"] = new JsonObject
                             {
                                 ["type"] = "array",
+                                ["minItems"] = 1,
                                 ["items"] = new JsonObject
                                 {
                                     ["type"] = "object",

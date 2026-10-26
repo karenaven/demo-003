@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -97,11 +98,12 @@ public sealed class SpikeGeminiTests(ITestOutputHelper salida) : IDisposable
 
         salida.WriteLine($"Modelo: {configuracion["Gemini:Modelo"]}");
 
-        var cliente = new ClienteMedido(new ClienteGemini(configuracion, new SchemaSalida(_config.Vocabulario)));
+        var cliente = new ClienteMedido(new ClienteGemini(configuracion));
         var generador = new GeneradorEscena(
             _base,
             cliente,
             new ArmadorInstruccion(_config.Instruccion, _config.Molde),
+            new SchemaSalida(_config.Vocabulario),
             new ValidadorRespuesta(_config.Vocabulario),
             new RegistroIntentos(_logs, TimeProvider.System, NullLogger<RegistroIntentos>.Instance),
             new NotificadorGeneracion(),
@@ -130,10 +132,10 @@ public sealed class SpikeGeminiTests(ITestOutputHelper salida) : IDisposable
     {
         public List<TimeSpan> Exitosas { get; } = [];
 
-        public async Task<RespuestaIa> GenerarAsync(string instruccion, CancellationToken ct)
+        public async Task<RespuestaIa> GenerarAsync(string instruccion, JsonObject schema, CancellationToken ct)
         {
             var reloj = Stopwatch.StartNew();
-            var respuesta = await interno.GenerarAsync(instruccion, ct);
+            var respuesta = await interno.GenerarAsync(instruccion, schema, ct);
             Exitosas.Add(reloj.Elapsed);
             return respuesta;
         }

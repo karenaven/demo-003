@@ -1,3 +1,5 @@
+using System.Text.Json.Nodes;
+
 namespace RodajeIA.Web.Generacion;
 
 /// <summary>Categorías de falla de un intento (FR-019a, research R-06).</summary>
@@ -34,6 +36,9 @@ public sealed class ErrorIa(CategoriaFalla categoria, string detalle, Exception?
 /// <summary>Acceso a la IA de texto, detrás de una abstracción para poder usar un doble en los tests (constitución V).</summary>
 public interface IClienteIa
 {
-    /// <summary>Envía la instrucción y devuelve el JSON de la respuesta, o lanza <see cref="ErrorIa"/>.</summary>
-    Task<RespuestaIa> GenerarAsync(string instruccion, CancellationToken ct);
+    /// <summary>
+    /// Envía la instrucción con el schema de salida de esa escena (<see cref="SchemaSalida.Para"/>)
+    /// y devuelve el JSON de la respuesta, o lanza <see cref="ErrorIa"/>.
+    /// </summary>
+    Task<RespuestaIa> GenerarAsync(string instruccion, JsonObject schema, CancellationToken ct);
 }

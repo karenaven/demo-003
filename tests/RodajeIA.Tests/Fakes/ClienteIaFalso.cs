@@ -1,10 +1,11 @@
+using System.Text.Json.Nodes;
 using RodajeIA.Web.Generacion;
 
 namespace RodajeIA.Tests.Fakes;
 
 /// <summary>
 /// Doble de <see cref="IClienteIa"/> con una cola de resultados programados. Registra cada
-/// instrucción recibida y el momento de la llamada según el reloj del test.
+/// instrucción y schema recibidos y el momento de la llamada según el reloj del test.
 /// </summary>
 public sealed class ClienteIaFalso(TimeProvider tiempo) : IClienteIa
 {
@@ -12,6 +13,8 @@ public sealed class ClienteIaFalso(TimeProvider tiempo) : IClienteIa
     private Func<string, CancellationToken, Task<string>>? _porDefecto;
 
     public List<string> Instrucciones { get; } = [];
+
+    public List<JsonObject> Schemas { get; } = [];
 
     public List<DateTimeOffset> Llamadas { get; } = [];
 
@@ -53,9 +56,10 @@ public sealed class ClienteIaFalso(TimeProvider tiempo) : IClienteIa
         return this;
     }
 
-    public Task<RespuestaIa> GenerarAsync(string instruccion, CancellationToken ct)
+    public Task<RespuestaIa> GenerarAsync(string instruccion, JsonObject schema, CancellationToken ct)
     {
         Instrucciones.Add(instruccion);
+        Schemas.Add(schema);
         Llamadas.Add(tiempo.GetUtcNow());
         var accion = _programados.Count > 0 ? _programados.Dequeue() : _porDefecto
             ?? throw new InvalidOperationException("El ClienteIaFalso no tiene más resultados programados.");
