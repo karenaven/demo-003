@@ -41,7 +41,7 @@
         <p class="aviso">@CargaGuionService.GeneracionEnCurso</p>
     }
 
-    <textarea class="guion" @bind="_texto" disabled="@EsteEpisodioGenerando" placeholder="Pegá el guion en texto plano" aria-label="Guion"></textarea>
+    <textarea class="guion" @bind="_texto" @bind:event="oninput" disabled="@EsteEpisodioGenerando" placeholder="Pegá el guion en texto plano" aria-label="Guion"></textarea>
 
     <div class="pie-acciones">
         @if (_pidiendoConfirmacion)
